@@ -1,48 +1,69 @@
+/* ==========================================
+   1. GLOBAL RESET & BASE STYLES
+========================================== */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 body {
-  background-color: #0f172a;
+  background-color: #0b1329;
   color: #f8fafc;
+  line-height: 1.5;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
+/* Helper Utilities */
 .hidden {
   display: none !important;
 }
 
-/* Navbar */
+.text-center { text-align: center; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mb-3 { margin-bottom: 0.75rem; }
+.mb-4 { margin-bottom: 1rem; }
+.w-full { width: 100%; }
+
+/* ==========================================
+   2. NAVBAR
+========================================== */
 .navbar {
-  background-color: #1e293b;
-  border-bottom: 1px solid #334155;
-  padding: 1rem 2rem;
+  background-color: #0f172a;
+  border-bottom: 1px solid #1e293b;
+  padding: 12px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 10px;
 }
 
 .logo-icon {
-  font-size: 1.8rem;
-  color: #10b981;
+  font-size: 1.5rem;
+  color: #38bdf8;
 }
 
 .logo-text {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #f8fafc;
 }
@@ -50,223 +71,294 @@ body {
 .user-nav {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
 }
 
 .badge {
-  background-color: #059669;
-  color: #ffffff;
-  padding: 0.25rem 0.6rem;
-  border-radius: 20px;
+  background-color: #38bdf8;
+  color: #0f172a;
   font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
   text-transform: uppercase;
-  font-weight: bold;
 }
 
 .user-email {
+  font-size: 0.875rem;
   color: #94a3b8;
-  font-size: 0.9rem;
 }
 
-/* Buttons */
+/* ==========================================
+   3. BUTTONS
+========================================== */
 .btn {
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
-  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-emerald {
   background-color: #10b981;
-  color: #0f172a;
-}
-
-.btn-emerald:hover {
-  background-color: #059669;
   color: #ffffff;
+}
+.btn-emerald:hover:not(:disabled) {
+  background-color: #059669;
 }
 
 .btn-slate {
   background-color: #334155;
   color: #f8fafc;
 }
-
-.btn-slate:hover {
+.btn-slate:hover:not(:disabled) {
   background-color: #475569;
 }
 
 .btn-sm {
-  padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
+  padding: 6px 12px;
+  font-size: 0.8rem;
 }
 
 .btn-block {
   width: 100%;
 }
 
-/* Auth Container */
+/* ==========================================
+   4. FORM CONTROLS
+========================================== */
+.form-group {
+  margin-bottom: 16px;
+}
+
+label, .sub-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.label-bold {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+select,
+textarea,
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: #070d1e;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  color: #f8fafc;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus, .form-control:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+}
+
+/* ==========================================
+   5. AUTH CONTAINER (LOGIN / REGISTER)
+========================================== */
 .auth-container {
+  flex: 1;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: calc(100vh - 80px);
-  padding: 2rem;
+  justify-content: center;
+  padding: 24px;
 }
 
 .auth-box {
-  background-color: #1e293b;
-  padding: 2.5rem;
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
   border-radius: 12px;
-  border: 1px solid #334155;
+  padding: 32px;
   width: 100%;
   max-width: 400px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
 .auth-box h2 {
-  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin-bottom: 20px;
   text-align: center;
-  color: #10b981;
-}
-
-.form-group {
-  margin-bottom: 1.25rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #cbd5e1;
-  font-size: 0.9rem;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #0f172a;
-  border: 1px solid #334155;
-  border-radius: 6px;
-  color: #fff;
-  outline: none;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-  border-color: #10b981;
 }
 
 .toggle-auth {
-  margin-top: 1.5rem;
+  margin-top: 16px;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   color: #94a3b8;
 }
 
 .toggle-auth a {
-  color: #10b981;
+  color: #38bdf8;
   text-decoration: none;
   font-weight: 600;
 }
+.toggle-auth a:hover {
+  text-decoration: underline;
+}
 
-/* Student Dashboard */
+/* ==========================================
+   6. STUDENT DASHBOARD
+========================================== */
 .main-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
   display: grid;
   grid-template-columns: 320px 1fr;
-  gap: 2rem;
-  max-width: 1300px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
+  gap: 24px;
+  width: 100%;
 }
 
 .sidebar {
-  background-color: #1e293b;
-  padding: 1.5rem;
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
   border-radius: 12px;
-  border: 1px solid #334155;
+  padding: 20px;
   height: fit-content;
 }
 
 .progress-box {
-  margin-bottom: 2rem;
-  background-color: #0f172a;
-  padding: 1rem;
-  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .progress-header {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-  font-size: 0.85rem;
-  color: #cbd5e1;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
 }
 
 .progress-bar-bg {
-  width: 100%;
+  background-color: #1e293b;
   height: 8px;
-  background-color: #334155;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-bar-fill {
-  height: 100%;
   background-color: #10b981;
+  height: 100%;
   transition: width 0.3s ease;
 }
 
+.points-badge-card {
+  background-color: #070d1e;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.card-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.points-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f59e0b;
+  margin: 4px 0;
+}
+
+.badge-display {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
 .section-title {
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-  color: #f8fafc;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #38bdf8;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .course-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .course-item {
-  padding: 0.8rem 1rem;
-  background-color: #0f172a;
-  border: 1px solid #334155;
+  padding: 10px 12px;
+  background-color: #070d1e;
+  border: 1px solid #1e293b;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  font-size: 0.875rem;
+  transition: all 0.2s;
 }
 
-.course-item:hover,
-.course-item.active {
-  border-color: #10b981;
-  background-color: #111827;
+.course-item:hover, .course-item.active {
+  border-color: #38bdf8;
+  background-color: #1e293b;
+}
+
+.final-exam-box {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #1e293b;
+}
+
+.exam-title {
+  font-size: 0.9rem;
+  color: #f8fafc;
+  margin-bottom: 12px;
 }
 
 .content-area {
-  background-color: #1e293b;
-  padding: 1.5rem;
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
   border-radius: 12px;
-  border: 1px solid #334155;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .video-container {
   position: relative;
-  padding-bottom: 56.25%;
-  height: 0;
-  overflow: hidden;
-  border-radius: 8px;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
   background-color: #000;
-  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
 }
 
 .video-container iframe {
@@ -278,380 +370,323 @@ body {
 }
 
 .lesson-title {
-  font-size: 1.4rem;
-  margin-bottom: 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
 }
 
 .lesson-desc {
   color: #94a3b8;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
 }
 
 .action-bar {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  border-top: 1px solid #334155;
-  padding-top: 1.5rem;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #1e293b;
 }
 
-.status-badge {
-  font-size: 0.85rem;
-  color: #10b981;
-  font-weight: 600;
-}
-
-/* Admin Dashboard */
+/* ==========================================
+   7. ADMIN DASHBOARD & LAYOUT
+========================================== */
 .admin-container {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
+}
+
+.admin-main-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
 }
 
 .admin-box {
-  background-color: #1e293b;
-  padding: 2rem;
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
   border-radius: 12px;
-  border: 1px solid #334155;
+  padding: 20px;
 }
 
-.mt-6 {
-  margin-top: 1.5rem;
-}
-
-.admin-form-btns {
+.course-create-wrapper {
   display: flex;
-  gap: 1rem;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
+.course-create-wrapper input {
+  flex: 1;
+}
+
+.created-courses-wrapper {
+  background-color: #070d1e;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.main-course-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.main-course-item {
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
+  padding: 10px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.quiz-box-border {
+  border: 1px dashed #334155;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #070d1e;
+}
+
+.admin-form-btns, .admin-btn-group {
+  display: flex;
+  gap: 12px;
+}
+
+/* Admin Table */
 .table-responsive {
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 1rem;
-  min-width: 600px; /* মোবাইল স্ক্রিনে টেবিল ভেঙে না যাওয়ার জন্য */
+  margin-top: 12px;
+  font-size: 0.875rem;
 }
 
-.admin-table th,
-.admin-table td {
-  padding: 0.8rem 1rem;
+.admin-table th, .admin-table td {
+  padding: 12px;
   text-align: left;
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid #1e293b;
 }
 
 .admin-table th {
-  background-color: #0f172a;
+  background-color: #070d1e;
   color: #94a3b8;
+  font-weight: 600;
 }
 
-.text-center {
+/* Analytics Sidebar */
+.admin-sidebar-analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.analytics-card {
+  background-color: #070d1e;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
   text-align: center;
 }
 
-.action-btn-group {
-  display: flex;
-  gap: 0.5rem;
+.analytics-card h4, .chart-card h4 {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
 }
 
-.btn-danger {
-  background-color: #ef4444;
-  color: #fff;
+.analytics-card span {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #38bdf8;
 }
 
-.btn-danger:hover {
-  background-color: #dc2626;
+.chart-card {
+  background-color: #070d1e;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
 }
 
-/* Theory Modal Overlay Styles */
+/* ==========================================
+   8. MODALS (POP-UPS)
+========================================== */
 .modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(11, 19, 41, 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 550px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.max-w-650 {
+  max-width: 650px;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  font-size: 1.1rem;
+  color: #38bdf8;
+}
+
+.close-btn {
+  font-size: 1.5rem;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #f8fafc;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Responsive Handling */
+@media (max-width: 900px) {
+  .main-container, .admin-main-wrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .course-create-wrapper {
+    flex-direction: column;
+  }
+}
+/* Dynamic Course Item Layout Fix */
+.main-course-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.main-course-card {
+  background-color: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.main-course-card .course-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #38bdf8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.main-course-card .course-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+  font-size: 0.9rem;
+}
+
+.btn-edit {
+  color: #94a3b8;
+}
+.btn-edit:hover {
+  color: #38bdf8;
+}
+
+.btn-delete {
+  color: #ef4444;
+}
+.btn-delete:hover {
+  color: #f87171;
+}
+/* Hide User Email in Navbar */
+#userNameDisplay {
+  display: none !important;
+}
+/* bKash Payment Modal Styling */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.8);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
-  padding: 1rem;
 }
 
-.modal-content {
-  background-color: #1e293b;
-  color: #f8fafc;
+.modal-overlay.hidden {
+  display: none !important;
+}
+
+.modal-card {
+  background: #0f172a;
+  border: 1px solid #334155;
   padding: 24px;
   border-radius: 12px;
-  max-width: 650px;
-  width: 100%;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-
-.modal-body {
-  padding: 10px 0;
-  max-height: 60vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  line-height: 1.7;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-.close-btn {
-  font-size: 28px;
-  cursor: pointer;
-  color: #94a3b8;
-  transition: color 0.2s;
-}
-
-.close-btn:hover {
-  color: #ef4444;
-}
-
-.course-item.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: auto;
-}
-
-/* ==========================================
-   RESPONSIVE MEDIA QUERIES (Mobile & Tablet)
-   ========================================== */
-
-/* Tablet Screens (992px and below) */
-@media (max-width: 992px) {
-  .main-container {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-}
-
-/* Mobile Screens (768px and below) */
-@media (max-width: 768px) {
-  /* Navbar */
-  .navbar {
-    padding: 0.75rem 1rem;
-  }
-
-  .nav-container {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
-  .user-nav {
-    width: 100%;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .user-email {
-  display: none;
-}
-
-  /* Auth Box */
-  .auth-container {
-    padding: 1rem;
-  }
-
-  .auth-box {
-    padding: 1.5rem;
-  }
-
-  /* Main Container & Dashboards */
-  .main-container,
-  .admin-container {
-    margin: 1rem auto;
-    padding: 0 0.75rem;
-  }
-
-  .sidebar,
-  .content-area,
-  .admin-box {
-    padding: 1rem;
-  }
-
-  .lesson-title {
-    font-size: 1.2rem;
-  }
-
-  .action-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
-  }
-
-  .action-bar .btn {
-    width: 100%;
-  }
-
-  .admin-form-btns {
-    flex-direction: column;
-  }
-
-  /* Modal */
-  .modal-content {
-    padding: 16px;
-  }
-}
-
-/* Extra Small Mobile Screens (480px and below) */
-@media (max-width: 480px) {
-  .logo-text {
-    font-size: 1.2rem;
-  }
-
-  .logo-icon {
-    font-size: 1.5rem;
-  }
-
-  .btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .course-item {
-    font-size: 0.9rem;
-    padding: 0.6rem 0.8rem;
-  }
-}
-/* ল্যাপটপ/বড় স্ক্রিনে (769px বা তার উপরে) ইমেইল লুকিয়ে যাবে */
-@media (min-width: 769px) {
-  .user-email {
-    display: none !important;
-  }
-}
-/* অ্যাডমিন মেইন লেআউট গ্রিড */
-.admin-main-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 320px; /* ডানে ৩২০ পিক্সেলের সাইডবার */
-  gap: 1.5rem;
-  max-width: 1300px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
-}
-
-.admin-sidebar-analytics {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.analytics-card {
-  background-color: #0f172a;
-  padding: 1rem;
+.bkash-number-box {
+  background: #e2136e;
+  color: #ffffff;
+  padding: 12px;
   border-radius: 8px;
-  border: 1px solid #334155;
+  margin: 15px 0;
+  font-size: 1.05rem;
   text-align: center;
-  margin-bottom: 1rem;
-}
-
-.analytics-card h4 {
-  color: #94a3b8;
-  font-size: 0.85rem;
-  margin-bottom: 0.3rem;
-}
-
-.analytics-card span {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #10b981;
-}
-
-.chart-card {
-  background-color: #0f172a;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #334155;
-  margin-bottom: 1rem;
-}
-
-.chart-card h4 {
-  color: #f8fafc;
-  font-size: 0.9rem;
-  margin-bottom: 0.8rem;
-  text-align: center;
-}
-
-/* রেসপন্সিভ ব্রেকপয়েন্ট (মোবাইলে নিচে চলে যাবে) */
-@media (max-width: 992px) {
-  .admin-main-wrapper {
-    grid-template-columns: 1fr;
-  }
-}
-.admin-main-wrapper {
-  display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 1.5rem;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
-.admin-sidebar-analytics {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.analytics-card {
-  background-color: #0f172a;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #334155;
-  text-align: center;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-}
-
-.analytics-card h4 {
-  color: #94a3b8;
-  font-size: 0.85rem;
-  margin-bottom: 0.3rem;
-}
-
-.analytics-card span {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #10b981;
-}
-
-.chart-card {
-  background-color: #0f172a;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #334155;
-  margin-bottom: 1rem;
-}
-
-.chart-card h4 {
-  color: #f8fafc;
-  font-size: 0.85rem;
-  margin-bottom: 0.8rem;
-  text-align: center;
-}
-
-@media (max-width: 1024px) {
-  .admin-main-wrapper {
-    grid-template-columns: 1fr;
-  }
 }

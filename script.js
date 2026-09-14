@@ -15,7 +15,11 @@ import {
   addDoc, 
   getDocs, 
   updateDoc, 
-  deleteDoc 
+  deleteDoc,
+  query,
+  orderBy,
+  limit,
+  where
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Firebase Config
@@ -37,14 +41,87 @@ const db = getFirestore(app);
 let currentUser = null;
 let userRole = "student";
 let isRegisterMode = false;
-let currentMainCourses = []; // মূল কোর্সের তালিকা
-let currentLessons = [];     // লেসনের তালিকা
+let currentMainCourses = [];
+let currentLessons = [];
 let activeCourseId = null;
 let userProgress = {};
 let quizCount = 0;
 let finalQuestionCount = 0;
 let activeMainCourseId = null;
 let currentFinalExamData = null;
+let selectedCourseForPayment = null;
+let userEnrollments = {}; // User's enrolled course status (approved, pending)
+
+// Dynamic Payment Modal Creation
+function createPaymentModal() {
+  if (document.getElementById("bkashPaymentModal")) return;
+
+  const modalHtml = `
+    <div id="bkashPaymentModal" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; align-items:center; justify-content:center;">
+      <div style="background:#1e293b; color:#fff; padding:24px; border-radius:12px; max-width:420px; width:90%; border:1px solid rgba(255,255,255,0.1); position:relative;">
+        <button id="closePaymentModal" style="position:absolute; top:12px; right:16px; background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">&times;</button>
+        <div style="text-align:center; margin-bottom:15px;">
+          <h3 style="color:#e11d48; font-size:20px; font-weight:bold; margin-bottom:5px;">bKash পেমেন্ট</h3>
+          <p style="font-size:13px; color:#94a3b8;">কোর্সে অ্যাক্সেস পেতে পেমেন্ট সম্পন্ন করুন</p>
+        </div>
+        <div style="background:#0f172a; padding:12px; border-radius:8px; margin-bottom:15px; font-size:14px; border:1px solid #334155;">
+          <p style="margin-bottom:6px;"><strong>নম্বর:</strong> <span style="color:#f43f5e; font-weight:bold;">01700000000</span> (Send Money / Cash In)</p>
+          <p style="margin-bottom:0;"><strong>কোর্স ফি:</strong> <span id="paymentAmountText" style="color:#10b981; font-weight:bold;">৫০৩ টাকা</span></p>
+        </div>
+        <form id="paymentForm">
+          <div style="margin-bottom:12px;">
+            <label style="display:block; font-size:12px; margin-bottom:4px; color:#cbd5e1;">আপনার bKash নম্বর</label>
+            <input type="text" id="payBkashNum" class="form-control" placeholder="017xxxxxxxx" required style="width:100%; padding:8px; border-radius:6px; background:#0f172a; border:1px solid #334155; color:#fff;">
+          </div>
+          <div style="margin-bottom:15px;">
+            <label style="display:block; font-size:12px; margin-bottom:4px; color:#cbd5e1;">TrxID (ট্রানজেকশন আইডি)</label>
+            <input type="text" id="payTrxId" class="form-control" placeholder="8N7A6D5E4F" required style="width:100%; padding:8px; border-radius:6px; background:#0f172a; border:1px solid #334155; color:#fff;">
+          </div>
+          <button type="submit" class="btn btn-emerald" style="width:100%; padding:10px; font-weight:bold; background:#e11d48; border:none; color:#fff; border-radius:6px; cursor:pointer;">Done (সাবমিট করুন)</button>
+        </form>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
+
+  document.getElementById("closePaymentModal").addEventListener("click", () => {
+    document.getElementById("bkashPaymentModal").classList.add("hidden");
+  });
+
+  document.getElementById("paymentForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const bkashNum = document.getElementById("payBkashNum").value.trim();
+    const trxId = document.getElementById("payTrxId").value.trim();
+
+    if (!bkashNum || !trxId || !selectedCourseForPayment) {
+      alert("সকল তথ্য সঠিকভাবে পূরণ করুন!");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "enrollments"), {
+        userId: currentUser.uid,
+        userName: currentUser.displayName || currentUser.email,
+        userEmail: currentUser.email,
+        courseId: selectedCourseForPayment.id,
+        courseTitle: selectedCourseForPayment.title,
+        bkashNumber: bkashNum,
+        trxId: trxId,
+        status: "pending",
+        createdAt: new Date().toISOString()
+      });
+
+      alert("পেমেন্ট তথ্য সাবমিট করা হয়েছে! অ্যাডমিন ভেরিফাই করে অ্যাপ্রুভ করলে কোর্সটি আনলক হবে।");
+      document.getElementById("bkashPaymentModal").classList.add("hidden");
+      document.getElementById("paymentForm").reset();
+      
+      await loadUserEnrollments();
+      loadStudentMainCourses();
+    } catch (err) {
+      alert("সমস্যা হয়েছে: " + err.message);
+    }
+  });
+}
 
 // DOM Elements
 const openTheoryBtn = document.getElementById("openTheoryBtn");
@@ -117,7 +194,7 @@ const finalQuestionsContainer = document.getElementById("finalQuestionsContainer
 const addFinalQuestionBtn = document.getElementById("addFinalQuestionBtn");
 const saveFinalExamBtn = document.getElementById("saveFinalExamBtn");
 
-// ==================== Theory & Exam Modal Event Listeners ====================
+// Modal Handlers
 if (openTheoryBtn && theoryModal && closeTheoryModal) {
   openTheoryBtn.addEventListener("click", () => {
     theoryModal.classList.remove("hidden");
@@ -140,7 +217,6 @@ if (closeFinalExamModal && finalExamModal) {
   });
 }
 
-// Toggle Login / Register View
 if (toggleAuthBtn) {
   toggleAuthBtn.addEventListener("click", (e) => {
     e.preventDefault();
@@ -164,16 +240,14 @@ if (toggleAuthBtn) {
   });
 }
 
-// Authentication Handler
 if (authForm) {
   authForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
     const email = emailInput.value.trim();
     const password = passwordInput.value.trim();
 
     if (!email || !password) {
-      alert("ইমেইল এবং পাসওয়ার্ড সঠিকভাব লিখুন!");
+      alert("ইমেইল এবং পাসওয়ার্ড সঠিকভাবে লিখুন!");
       return;
     }
 
@@ -195,28 +269,18 @@ if (authForm) {
         await signInWithEmailAndPassword(auth, email, password);
       }
     } catch (err) {
-      console.error("Auth Error:", err.code, err.message);
-
-      if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
-        alert("❌ ভুল ইমেইল অথবা পাসওয়ার্ড দিয়েছেন! আবার চেষ্টা করুন।");
-      } else if (err.code === "auth/email-already-in-use") {
-        alert("⚠️ এই ইমেইল দিয়ে ইতিমধ্যেই অ্যাকাউন্ট তৈরি করা হয়েছে।");
-      } else if (err.code === "auth/weak-password") {
-        alert("⚠️ পাসওয়ার্ড অন্তত ৬ অক্ষরের হতে হবে।");
-      } else {
-        alert("সমস্যা হয়েছে: " + err.message);
-      }
+      alert("সমস্যা হয়েছে: " + err.message);
     }
   });
 }
 
-// Logout
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => signOut(auth));
 }
 
-// Auth State Change Monitor
+// Auth State Monitor
 onAuthStateChanged(auth, async (user) => {
+  createPaymentModal();
   if (user) {
     currentUser = user;
     const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -235,31 +299,19 @@ onAuthStateChanged(auth, async (user) => {
 
     if (authContainer) authContainer.classList.add("hidden");
     if (userNav) userNav.classList.remove("hidden");
-// ২৩৫ ও ২৩৬ নম্বর লাইনের পর:
-    if (authContainer) authContainer.classList.add("hidden");
-    if (userNav) userNav.classList.remove("hidden");
 
-    // 👇 এই ব্লকটিতে loadAdminAnalytics(); যুক্ত করুন 👇
     if (userRole === "admin") {
       if (adminDashboard) adminDashboard.classList.remove("hidden");
       if (studentDashboard) studentDashboard.classList.add("hidden");
       
       loadMainCourses();
       loadAdminCourses();
-      loadAdminAnalytics(); // <-- এই নতুন লাইনটি এখানে বসবে
+      loadAdminAnalytics();
+      loadAdminPendingPayments();
     } else {
       if (studentDashboard) studentDashboard.classList.remove("hidden");
       if (adminDashboard) adminDashboard.classList.add("hidden");
-      loadStudentMainCourses();
-    }
-    if (userRole === "admin") {
-      if (adminDashboard) adminDashboard.classList.remove("hidden");
-      if (studentDashboard) studentDashboard.classList.add("hidden");
-      loadMainCourses();
-      loadAdminCourses();
-    } else {
-      if (studentDashboard) studentDashboard.classList.remove("hidden");
-      if (adminDashboard) adminDashboard.classList.add("hidden");
+      await loadUserEnrollments();
       loadStudentMainCourses();
     }
   } else {
@@ -271,7 +323,18 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// Helper: Extract YouTube Embed Link
+// Load User Course Approvals
+async function loadUserEnrollments() {
+  if (!currentUser) return;
+  const q = query(collection(db, "enrollments"), where("userId", "==", currentUser.uid));
+  const querySnapshot = await getDocs(q);
+  userEnrollments = {};
+  querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    userEnrollments[data.courseId] = data.status;
+  });
+}
+
 function getYoutubeEmbedUrl(input) {
   if (!input) return "";
   let videoId = input;
@@ -285,7 +348,7 @@ function getYoutubeEmbedUrl(input) {
   return `https://www.youtube.com/embed/${videoId}`;
 }
 
-// ==================== Step 1: Main Course Management ====================
+// Step 1: Main Course Management
 if (createCourseBtn) {
   createCourseBtn.addEventListener("click", async () => {
     const title = newCourseTitle.value.trim();
@@ -319,7 +382,6 @@ async function loadMainCourses() {
     const mainCourse = { id: docSnap.id, ...docSnap.data() };
     currentMainCourses.push(mainCourse);
 
-    // Populate Parent Course Dropdown for Step 2 & Step 3
     if (parentCourseSelect) {
       const opt = document.createElement("option");
       opt.value = mainCourse.id;
@@ -334,7 +396,6 @@ async function loadMainCourses() {
       adminFinalExamCourseSelect.appendChild(opt);
     }
 
-    // Populate Admin Main Course Badges
     if (adminMainCourseList) {
       const badge = document.createElement("div");
       badge.style.cssText = "background: #1e293b; padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 8px; color: #f8fafc; font-size: 14px;";
@@ -364,7 +425,416 @@ window.deleteMainCourse = async (id) => {
   }
 };
 
-// ==================== Dynamic Quiz Builder Logic ====================
+// Student Main Course List (With Lock & bKash Logic)
+async function loadStudentMainCourses() {
+  const container = document.getElementById("studentMainCoursesContainer") || studentCourseSelect?.parentElement;
+  const querySnapshot = await getDocs(collection(db, "main_courses"));
+  currentMainCourses = [];
+
+  if (studentCourseSelect) {
+    studentCourseSelect.innerHTML = '<option value="">-- কোর্স বেছে নিন --</option>';
+  }
+
+  const courseGrid = document.createElement("div");
+  courseGrid.style.cssText = "display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 20px;";
+
+  querySnapshot.forEach((docSnap) => {
+    const course = { id: docSnap.id, ...docSnap.data() };
+    currentMainCourses.push(course);
+
+    const status = userEnrollments[course.id]; // 'approved', 'pending', or undefined
+    const isApproved = status === "approved";
+    const isPending = status === "pending";
+
+    const card = document.createElement("div");
+    card.style.cssText = `padding: 16px; border-radius: 8px; border: 1px solid ${isApproved ? '#10b981' : '#334155'}; background: #1e293b; cursor: pointer; display: flex; justify-content: space-between; align-items: center;`;
+
+    card.innerHTML = `
+      <div>
+        <h4 style="margin: 0; color: #f8fafc; font-size: 15px;">${course.title}</h4>
+        <span style="font-size: 11px; color: ${isApproved ? '#10b981' : isPending ? '#f59e0b' : '#ef4444'}; font-weight: bold;">
+          ${isApproved ? '🔓 আনলকড (এনরোল্ড)' : isPending ? '⏳ পেমেন্ট পেন্ডিং' : '🔒 লকড (পেমেন্ট করুন)'}
+        </span>
+      </div>
+      <i class="fa-solid ${isApproved ? 'fa-lock-open' : 'fa-lock'}" style="color: ${isApproved ? '#10b981' : '#ef4444'};"></i>
+    `;
+
+    card.onclick = () => {
+      if (isApproved) {
+        activeMainCourseId = course.id;
+        if (studentCourseSelect) studentCourseSelect.value = course.id;
+        loadStudentCourses(course.id);
+      } else if (isPending) {
+        alert("আপনার পেমেন্টটি বর্তমানে পেন্ডিং অবস্থায় আছে। অ্যাডমিন অনুমোদন প্রদান করলে এটি আনলক হবে।");
+      } else {
+        selectedCourseForPayment = course;
+        const modal = document.getElementById("bkashPaymentModal");
+        if (modal) modal.classList.remove("hidden");
+      }
+    };
+
+    courseGrid.appendChild(card);
+
+    if (studentCourseSelect) {
+      const opt = document.createElement("option");
+      opt.value = course.id;
+      opt.textContent = `${course.title} ${isApproved ? '' : '(🔒)'}`;
+      if (!isApproved) opt.disabled = true;
+      studentCourseSelect.appendChild(opt);
+    }
+  });
+
+  if (container && !document.getElementById("studentCourseCardsArea")) {
+    const wrapper = document.createElement("div");
+    wrapper.id = "studentCourseCardsArea";
+    wrapper.innerHTML = `<h3 style="font-size: 16px; margin-bottom: 10px; color: #cbd5e1;">উপলব্ধ কোর্সসমূহ:</h3>`;
+    wrapper.appendChild(courseGrid);
+    container.prepend(wrapper);
+  } else if (document.getElementById("studentCourseCardsArea")) {
+    const wrapper = document.getElementById("studentCourseCardsArea");
+    wrapper.innerHTML = `<h3 style="font-size: 16px; margin-bottom: 10px; color: #cbd5e1;">উপলব্ধ কোর্সসমূহ:</h3>`;
+    wrapper.appendChild(courseGrid);
+  }
+}
+
+if (studentCourseSelect) {
+  studentCourseSelect.addEventListener("change", (e) => {
+    activeMainCourseId = e.target.value;
+    loadStudentCourses(activeMainCourseId);
+  });
+}
+
+// Student Lessons View
+async function loadStudentCourses(mainCourseId = null) {
+  if (!courseList) return;
+  if (!mainCourseId) {
+    courseList.innerHTML = "<p class='text-center' style='color:#94a3b8; padding: 15px;'>অনুগ্রহ করে একটি আনলকড কোর্স সিলেক্ট করুন</p>";
+    return;
+  }
+
+  const querySnapshot = await getDocs(collection(db, "courses"));
+  currentLessons = [];
+  courseList.innerHTML = "";
+
+  querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    if (data.parentCourseId === mainCourseId) {
+      currentLessons.push({ id: docSnap.id, ...data });
+    }
+  });
+
+  if (currentLessons.length === 0) {
+    courseList.innerHTML = "<p class='text-center' style='color:#94a3b8; padding: 15px;'>কোন লেসন পাওয়া যায়নি</p>";
+    if (videoPlayer) videoPlayer.src = "";
+    if (lessonTitle) lessonTitle.textContent = "লেসন বেছে নিন";
+    if (lessonDesc) lessonDesc.textContent = "";
+    if (modalTheoryBody) modalTheoryBody.textContent = "";
+    if (studentQuizSection) studentQuizSection.classList.add("hidden");
+    updateProgressDisplay();
+    return;
+  }
+
+  currentLessons.forEach((c, index) => {
+    const isDone = userProgress[c.id];
+    const isUnlocked = index === 0 || userProgress[currentLessons[index - 1].id] === true;
+
+    const item = document.createElement("div");
+    item.className = `course-item ${activeCourseId === c.id ? 'active' : ''}`;
+    
+    item.style.cursor = isUnlocked ? "pointer" : "not-allowed";
+    item.style.opacity = isUnlocked ? "1" : "0.5";
+    item.style.display = "flex";
+    item.style.justifyContent = "space-between";
+    item.style.alignItems = "center";
+
+    item.innerHTML = `
+      <span>${c.title}</span>
+      <div>
+        ${isDone ? '<i class="fa-solid fa-check-circle" style="color:#10b981"></i>' : ''}
+        ${!isUnlocked ? '<i class="fa-solid fa-lock" style="color:#ef4444; margin-left:8px;"></i>' : ''}
+      </div>
+    `;
+
+    item.onclick = () => {
+      if (isUnlocked) {
+        selectCourse(c);
+      } else {
+        alert("🔒 পূর্ববর্তী লেসনের কুইজে কমপক্ষে ৮০% মার্কস পেয়ে পাস করতে হবে!");
+      }
+    };
+
+    courseList.appendChild(item);
+  });
+
+  updateProgressDisplay();
+  if (currentLessons.length > 0) {
+    selectCourse(currentLessons[0]);
+  }
+}
+
+function selectCourse(course) {
+  if (!course) return;
+  activeCourseId = course.id;
+  if (videoPlayer) videoPlayer.src = getYoutubeEmbedUrl(course.youtubeId);
+  if (lessonTitle) lessonTitle.textContent = course.title;
+  
+  const theoryContent = course.theory || course.description || 'কোন থিওরি যুক্ত করা হয়নি।';
+
+  if (modalTheoryBody) {
+    if (window.marked) {
+      modalTheoryBody.innerHTML = marked.parse(theoryContent);
+    } else {
+      modalTheoryBody.textContent = theoryContent;
+    }
+  }
+
+  if (lessonTheoryContainer) {
+    lessonTheoryContainer.innerHTML = `
+      <button id="openTheoryBtn" class="btn btn-slate mt-2" style="margin-top: 10px;">
+        <i class="fa-solid fa-book-open"></i> থিওরি পড়ুন
+      </button>
+    `;
+
+    const newOpenBtn = document.getElementById("openTheoryBtn");
+    if (newOpenBtn && theoryModal) {
+      newOpenBtn.addEventListener("click", () => {
+        theoryModal.classList.remove("hidden");
+      });
+    }
+  }
+
+  renderStudentQuizzes(course.quizzes || []);
+
+  const isCompleted = userProgress[course.id];
+  if (statusBadge) statusBadge.textContent = isCompleted ? "সম্পন্ন হয়েছে" : "চলমান";
+  if (completeBtn) completeBtn.style.display = isCompleted ? "none" : "inline-block";
+
+  if (courseList) {
+    const allItems = courseList.querySelectorAll(".course-item");
+    allItems.forEach((item, index) => {
+      if (currentLessons[index] && currentLessons[index].id === course.id) {
+        item.classList.add("active");
+      } else {
+        item.classList.remove("active");
+      }
+    });
+  }
+}
+
+function renderStudentQuizzes(quizzes) {
+  if (!studentQuizSection || !quizDisplayContainer) return;
+
+  if (!quizzes || quizzes.length === 0) {
+    studentQuizSection.classList.add("hidden");
+    quizDisplayContainer.innerHTML = "";
+    return;
+  }
+
+  studentQuizSection.classList.remove("hidden");
+  quizDisplayContainer.innerHTML = "";
+
+  quizzes.forEach((q, idx) => {
+    const qDiv = document.createElement("div");
+    qDiv.className = "quiz-card p-3 mb-3 border rounded";
+    qDiv.style.marginBottom = "15px";
+    qDiv.style.padding = "10px";
+    qDiv.style.border = "1px solid rgba(255,255,255,0.1)";
+
+    let optionsHtml = "";
+    q.options.forEach((opt) => {
+      optionsHtml += `
+        <label style="display:block; margin: 5px 0; cursor:pointer;">
+          <input type="radio" name="quiz_opt_${idx}" value="${opt}"> ${opt}
+        </label>
+      `;
+    });
+
+    qDiv.innerHTML = `
+      <p style="font-weight:bold; margin-bottom: 8px;">${idx + 1}. ${q.question}</p>
+      <div>${optionsHtml}</div>
+    `;
+    quizDisplayContainer.appendChild(qDiv);
+  });
+
+  const submitQuizBtn = document.createElement("button");
+  submitQuizBtn.className = "btn btn-emerald mt-2";
+  submitQuizBtn.textContent = "কুইজ সাবমিট করুন";
+
+  if (userProgress && userProgress[activeCourseId] === true) {
+    submitQuizBtn.textContent = "✅ আপনি ইতিমধ্যে এই লেসনে পাস করেছেন";
+    submitQuizBtn.disabled = true;
+    submitQuizBtn.style.opacity = "0.7";
+    submitQuizBtn.style.cursor = "not-allowed";
+  }
+
+  submitQuizBtn.onclick = async () => {
+    if (userProgress && userProgress[activeCourseId] === true) {
+      alert("আপনি ইতিমধ্যে এই কুইজে পাস করেছেন, তাই আর পরীক্ষা দিতে পারবেন না!");
+      return;
+    }
+
+    let score = 0;
+    quizzes.forEach((q, idx) => {
+      const selected = document.querySelector(`input[name="quiz_opt_${idx}"]:checked`);
+      if (selected && selected.value.trim().toLowerCase() === q.answer.trim().toLowerCase()) {
+        score++;
+      }
+    });
+
+    const percentage = (score / quizzes.length) * 100;
+
+    if (percentage >= 80) {
+      const pointsToEarn = score + 20;
+      await addPointsToUser(pointsToEarn);
+
+      userProgress[activeCourseId] = true;
+      if (currentUser) {
+        await updateDoc(doc(db, "users", currentUser.uid), {
+          progress: userProgress
+        });
+      }
+
+      alert(`🎉 অভিনন্দন! আপনি ${percentage.toFixed(0)}% মার্কস পেয়ে পাস করেছেন। +${pointsToEarn} পয়েন্ট যুক্ত হয়েছে!`);
+
+      submitQuizBtn.textContent = "✅ আপনি ইতিমধ্যে এই লেসনে পাস করেছেন";
+      submitQuizBtn.disabled = true;
+      submitQuizBtn.style.opacity = "0.7";
+      submitQuizBtn.style.cursor = "not-allowed";
+
+      loadStudentCourses(activeMainCourseId);
+    } else {
+      alert(`❌ আপনি পেয়েছেন ${percentage.toFixed(0)}% মার্কস। পাস করতে কমপক্ষে ৮০% লাগবে। দয়া করে আবার চেষ্টা করুন!`);
+    }
+  };
+
+  quizDisplayContainer.appendChild(submitQuizBtn);
+}
+
+if (completeBtn) {
+  completeBtn.addEventListener("click", async () => {
+    if (!activeCourseId || !currentUser) return;
+
+    userProgress[activeCourseId] = true;
+    await updateDoc(doc(db, "users", currentUser.uid), {
+      progress: userProgress
+    });
+
+    loadStudentCourses(activeMainCourseId);
+  });
+}
+
+function updateProgressDisplay() {
+  const total = currentLessons.length;
+  if (total === 0) {
+    if (progressBarFill) progressBarFill.style.width = `0%`;
+    if (progressText) progressText.textContent = `0%`;
+    toggleFinalExamButton(false);
+    return;
+  }
+
+  const completed = currentLessons.filter(c => userProgress[c.id]).length;
+  const percent = Math.round((completed / total) * 100);
+
+  if (progressBarFill) progressBarFill.style.width = `${percent}%`;
+  if (progressText) progressText.textContent = `${percent}%`;
+
+  if (percent === 100) {
+    toggleFinalExamButton(true);
+  } else {
+    toggleFinalExamButton(false);
+  }
+}
+
+function toggleFinalExamButton(isUnlocked) {
+  if (!startFinalExamBtn) return;
+  if (isUnlocked) {
+    startFinalExamBtn.disabled = false;
+    startFinalExamBtn.innerHTML = `🎓 ফাইনাল এক্সাম দিন`;
+    startFinalExamBtn.style.cursor = "pointer";
+  } else {
+    startFinalExamBtn.disabled = true;
+    startFinalExamBtn.innerHTML = `🔒 ফাইনাল এক্সাম (সব লেসন শেষ করুন)`;
+    startFinalExamBtn.style.cursor = "not-allowed";
+  }
+
+  if (activeMainCourseId && userProgress[`cert_${activeMainCourseId}`]) {
+    if (downloadCertBtn) downloadCertBtn.classList.remove("hidden");
+  } else {
+    if (downloadCertBtn) downloadCertBtn.classList.add("hidden");
+  }
+}
+
+// Admin Pending Payments Verification
+async function loadAdminPendingPayments() {
+  const adminSection = document.getElementById("adminDashboard");
+  if (!adminSection) return;
+
+  let paymentContainer = document.getElementById("adminPaymentsSection");
+  if (!paymentContainer) {
+    paymentContainer = document.createElement("div");
+    paymentContainer.id = "adminPaymentsSection";
+    paymentContainer.style.cssText = "margin-top: 20px; background: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);";
+    adminSection.prepend(paymentContainer);
+  }
+
+  const q = query(collection(db, "enrollments"), where("status", "==", "pending"));
+  const querySnapshot = await getDocs(q);
+
+  paymentContainer.innerHTML = `<h3 style="color:#f8fafc; font-size:16px; margin-bottom:12px;"><i class="fa-solid fa-credit-card" style="color:#e11d48;"></i> পেন্ডিং পেমেন্ট অ্যাপ্রুভাল</h3>`;
+
+  if (querySnapshot.empty) {
+    paymentContainer.innerHTML += `<p style="color:#94a3b8; font-size:13px;">কোন পেন্ডিং পেমেন্ট নেই।</p>`;
+    return;
+  }
+
+  const table = document.createElement("table");
+  table.style.cssText = "width:100%; border-collapse:collapse; color:#f8fafc; font-size:13px;";
+  table.innerHTML = `
+    <thead>
+      <tr style="border-bottom:1px solid #334155; text-align:left;">
+        <th style="padding:8px;">শিক্ষার্থী</th>
+        <th style="padding:8px;">কোর্স</th>
+        <th style="padding:8px;">bKash নম্বর</th>
+        <th style="padding:8px;">TrxID</th>
+        <th style="padding:8px;">অ্যাকশন</th>
+      </tr>
+    </thead>
+    <tbody id="adminPaymentTableBody"></tbody>
+  `;
+
+  paymentContainer.appendChild(table);
+  const tbody = document.getElementById("adminPaymentTableBody");
+
+  querySnapshot.forEach((docSnap) => {
+    const item = { id: docSnap.id, ...docSnap.data() };
+    const tr = document.createElement("tr");
+    tr.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+    tr.innerHTML = `
+      <td style="padding:8px;">${item.userName || item.userEmail}</td>
+      <td style="padding:8px;">${item.courseTitle}</td>
+      <td style="padding:8px; color:#f43f5e;">${item.bkashNumber}</td>
+      <td style="padding:8px; font-family:monospace;">${item.trxId}</td>
+      <td style="padding:8px;">
+        <button class="btn btn-emerald btn-sm" onclick="approvePayment('${item.id}')" style="padding:4px 8px; font-size:12px; background:#10b981; border:none; color:#fff; border-radius:4px; cursor:pointer;">Approve</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+window.approvePayment = async (enrollmentId) => {
+  try {
+    await updateDoc(doc(db, "enrollments", enrollmentId), {
+      status: "approved"
+    });
+    alert("পেমেন্ট সফলভাবে অ্যাপ্রুভ করা হয়েছে! শিক্ষার্থী এখন কোর্সে এক্সেস পাবে।");
+    loadAdminPendingPayments();
+  } catch (err) {
+    alert("অ্যাপ্রুভ করতে সমস্যা হয়েছে: " + err.message);
+  }
+};
+
+// Quiz Builder Logic
 if (addQuizBtn) {
   addQuizBtn.addEventListener("click", () => {
     addQuizInputField();
@@ -430,7 +900,7 @@ function collectQuizzesData() {
   return quizzes;
 }
 
-// ==================== Step 3: Admin Final Exam Builder ====================
+// Step 3: Admin Final Exam Builder
 if (adminFinalExamCourseSelect) {
   adminFinalExamCourseSelect.addEventListener("change", async (e) => {
     const courseId = e.target.value;
@@ -528,292 +998,7 @@ if (saveFinalExamBtn) {
   });
 }
 
-// ==================== Student View Logic ====================
-async function loadStudentMainCourses() {
-  if (!studentCourseSelect) return;
-  const querySnapshot = await getDocs(collection(db, "main_courses"));
-  studentCourseSelect.innerHTML = '<option value="">-- কোর্স বেছে নিন --</option>';
-
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    const opt = document.createElement("option");
-    opt.value = docSnap.id;
-    opt.textContent = data.title;
-    studentCourseSelect.appendChild(opt);
-  });
-}
-
-if (studentCourseSelect) {
-  studentCourseSelect.addEventListener("change", (e) => {
-    activeMainCourseId = e.target.value;
-    loadStudentCourses(activeMainCourseId);
-  });
-}
-
-async function loadStudentCourses(mainCourseId = null) {
-  if (!courseList) return;
-  const querySnapshot = await getDocs(collection(db, "courses"));
-  currentLessons = [];
-  courseList.innerHTML = "";
-
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    if (!mainCourseId || data.parentCourseId === mainCourseId) {
-      currentLessons.push({ id: docSnap.id, ...data });
-    }
-  });
-
-  if (currentLessons.length === 0) {
-    courseList.innerHTML = "<p class='text-center' style='color:#94a3b8; padding: 15px;'>কোন লেসন পাওয়া যায়নি</p>";
-    if (videoPlayer) videoPlayer.src = "";
-    if (lessonTitle) lessonTitle.textContent = "লেসন বেছে নিন";
-    if (lessonDesc) lessonDesc.textContent = "";
-    if (modalTheoryBody) modalTheoryBody.textContent = "";
-    if (studentQuizSection) studentQuizSection.classList.add("hidden");
-    updateProgressDisplay();
-    return;
-  }
-
-  currentLessons.forEach((c, index) => {
-    const isDone = userProgress[c.id];
-    const isUnlocked = index === 0 || userProgress[currentLessons[index - 1].id] === true;
-
-    const item = document.createElement("div");
-    item.className = `course-item ${activeCourseId === c.id ? 'active' : ''}`;
-    
-    item.style.cursor = isUnlocked ? "pointer" : "not-allowed";
-    item.style.opacity = isUnlocked ? "1" : "0.5";
-    item.style.display = "flex";
-    item.style.justifyContent = "space-between";
-    item.style.alignItems = "center";
-
-    item.innerHTML = `
-      <span>${c.title}</span>
-      <div>
-        ${isDone ? '<i class="fa-solid fa-check-circle" style="color:#10b981"></i>' : ''}
-        ${!isUnlocked ? '<i class="fa-solid fa-lock" style="color:#ef4444; margin-left:8px;"></i>' : ''}
-      </div>
-    `;
-
-    item.onclick = () => {
-      if (isUnlocked) {
-        selectCourse(c);
-      } else {
-        alert("🔒 পূর্ববর্তী লেসনের কুইজে কমপক্ষে ৮০% মার্কস পেয়ে পাস করতে হবে!");
-      }
-    };
-
-    courseList.appendChild(item);
-  });
-
-  updateProgressDisplay();
-  if (currentLessons.length > 0) {
-    selectCourse(currentLessons[0]);
-  }
-}
-
-function selectCourse(course) {
-  if (!course) return;
-  activeCourseId = course.id;
-  if (videoPlayer) videoPlayer.src = getYoutubeEmbedUrl(course.youtubeId);
-  if (lessonTitle) lessonTitle.textContent = course.title;
-  
-  const theoryContent = course.theory || course.description || 'কোন থিওরি যুক্ত করা হয়নি।';
-
-  // Marked.js থাকলে রেন্ডার হবে নতুবা প্লেন টেক্সট দেখাবে
-  if (modalTheoryBody) {
-    if (window.marked) {
-      modalTheoryBody.innerHTML = marked.parse(theoryContent);
-    } else {
-      modalTheoryBody.textContent = theoryContent;
-    }
-  }
-
-  if (lessonTheoryContainer) {
-    lessonTheoryContainer.innerHTML = `
-      <button id="openTheoryBtn" class="btn btn-slate mt-2" style="margin-top: 10px;">
-        <i class="fa-solid fa-book-open"></i> থিওরি পড়ুন
-      </button>
-    `;
-
-    const newOpenBtn = document.getElementById("openTheoryBtn");
-    if (newOpenBtn && theoryModal) {
-      newOpenBtn.addEventListener("click", () => {
-        theoryModal.classList.remove("hidden");
-      });
-    }
-  }
-
-  renderStudentQuizzes(course.quizzes || []);
-
-  const isCompleted = userProgress[course.id];
-  if (statusBadge) statusBadge.textContent = isCompleted ? "সম্পন্ন হয়েছে" : "চলমান";
-  if (completeBtn) completeBtn.style.display = isCompleted ? "none" : "inline-block";
-
-  if (courseList) {
-    const allItems = courseList.querySelectorAll(".course-item");
-    allItems.forEach((item, index) => {
-      if (currentLessons[index] && currentLessons[index].id === course.id) {
-        item.classList.add("active");
-      } else {
-        item.classList.remove("active");
-      }
-    });
-  }
-}
-
-function renderStudentQuizzes(quizzes) {
-  if (!studentQuizSection || !quizDisplayContainer) return;
-
-  if (!quizzes || quizzes.length === 0) {
-    studentQuizSection.classList.add("hidden");
-    quizDisplayContainer.innerHTML = "";
-    return;
-  }
-
-  studentQuizSection.classList.remove("hidden");
-  quizDisplayContainer.innerHTML = "";
-
-  quizzes.forEach((q, idx) => {
-    const qDiv = document.createElement("div");
-    qDiv.className = "quiz-card p-3 mb-3 border rounded";
-    qDiv.style.marginBottom = "15px";
-    qDiv.style.padding = "10px";
-    qDiv.style.border = "1px solid rgba(255,255,255,0.1)";
-
-    let optionsHtml = "";
-    q.options.forEach((opt) => {
-      optionsHtml += `
-        <label style="display:block; margin: 5px 0; cursor:pointer;">
-          <input type="radio" name="quiz_opt_${idx}" value="${opt}"> ${opt}
-        </label>
-      `;
-    });
-
-    qDiv.innerHTML = `
-      <p style="font-weight:bold; margin-bottom: 8px;">${idx + 1}. ${q.question}</p>
-      <div>${optionsHtml}</div>
-    `;
-    quizDisplayContainer.appendChild(qDiv);
-  });
-
-  const submitQuizBtn = document.createElement("button");
-submitQuizBtn.className = "btn btn-emerald mt-2";
-submitQuizBtn.textContent = "কুইজ সাবমিট করুন";
-
-// চেক করা যাক লেসনটি ইতিমধ্যে পাস করা আছে কি না
-if (userProgress && userProgress[activeCourseId] === true) {
-  submitQuizBtn.textContent = "✅ আপনি ইতিমধ্যে এই লেসনে পাস করেছেন";
-  submitQuizBtn.disabled = true;
-  submitQuizBtn.style.opacity = "0.7";
-  submitQuizBtn.style.cursor = "not-allowed";
-}
-
-submitQuizBtn.onclick = async () => {
-  // ডাবল প্রোটেকশন: যদি অলরেডি পাস করা থাকে তবে রিকোয়েস্ট ব্লক হবে
-  if (userProgress && userProgress[activeCourseId] === true) {
-    alert("আপনি ইতিমধ্যে এই কুইজে পাস করেছেন, তাই আর পরীক্ষা দিতে পারবেন না!");
-    return;
-  }
-
-  let score = 0;
-  quizzes.forEach((q, idx) => {
-    const selected = document.querySelector(`input[name="quiz_opt_${idx}"]:checked`);
-    if (selected && selected.value.trim().toLowerCase() === q.answer.trim().toLowerCase()) {
-      score++;
-    }
-  });
-
-  const percentage = (score / quizzes.length) * 100;
-
-  if (percentage >= 80) {
-    // পাস করলে পয়েন্ট যোগ হবে (শুধু একবারই)
-    const pointsToEarn = score + 20;
-    await addPointsToUser(pointsToEarn);
-
-    // প্রোগ্রেস আপডেট করে ট্রু করা
-    userProgress[activeCourseId] = true;
-    if (currentUser) {
-      await updateDoc(doc(db, "users", currentUser.uid), {
-        progress: userProgress
-      });
-    }
-
-    alert(`🎉 অভিনন্দন! আপনি ${percentage.toFixed(0)}% মার্কস পেয়ে পাস করেছেন। +${pointsToEarn} পয়েন্ট যুক্ত হয়েছে!`);
-
-    // বাটন ডিসেবল ও টেক্সট পরিবর্তন
-    submitQuizBtn.textContent = "✅ আপনি ইতিমধ্যে এই লেসনে পাস করেছেন";
-    submitQuizBtn.disabled = true;
-    submitQuizBtn.style.opacity = "0.7";
-    submitQuizBtn.style.cursor = "not-allowed";
-
-    loadStudentCourses(studentCourseSelect ? studentCourseSelect.value : null);
-  } else {
-    // ৮০% এর নিচে পেলে রিটেক দেওয়ার সুযোগ থাকবে (পয়েন্ট বা প্রোগ্রেস সেভ হবে না)
-    alert(`❌ আপনি পেয়েছেন ${percentage.toFixed(0)}% মার্কস। পাস করতে কমপক্ষে ৮০% লাগবে। দয়া করে আবার চেষ্টা করুন!`);
-  }
-};
-
-  quizDisplayContainer.appendChild(submitQuizBtn);
-}
-
-if (completeBtn) {
-  completeBtn.addEventListener("click", async () => {
-    if (!activeCourseId || !currentUser) return;
-
-    userProgress[activeCourseId] = true;
-    await updateDoc(doc(db, "users", currentUser.uid), {
-      progress: userProgress
-    });
-
-    loadStudentCourses(studentCourseSelect ? studentCourseSelect.value : null);
-  });
-}
-
-function updateProgressDisplay() {
-  const total = currentLessons.length;
-  if (total === 0) {
-    if (progressBarFill) progressBarFill.style.width = `0%`;
-    if (progressText) progressText.textContent = `0%`;
-    toggleFinalExamButton(false);
-    return;
-  }
-
-  const completed = currentLessons.filter(c => userProgress[c.id]).length;
-  const percent = Math.round((completed / total) * 100);
-
-  if (progressBarFill) progressBarFill.style.width = `${percent}%`;
-  if (progressText) progressText.textContent = `${percent}%`;
-
-  // ১০০% হলে ফাইনাল এক্সাম বোতাম আনলক হবে
-  if (percent === 100) {
-    toggleFinalExamButton(true);
-  } else {
-    toggleFinalExamButton(false);
-  }
-}
-
-function toggleFinalExamButton(isUnlocked) {
-  if (!startFinalExamBtn) return;
-  if (isUnlocked) {
-    startFinalExamBtn.disabled = false;
-    startFinalExamBtn.innerHTML = `🎓 ফাইনাল এক্সাম দিন`;
-    startFinalExamBtn.style.cursor = "pointer";
-  } else {
-    startFinalExamBtn.disabled = true;
-    startFinalExamBtn.innerHTML = `🔒 ফাইনাল এক্সাম (সব লেসন শেষ করুন)`;
-    startFinalExamBtn.style.cursor = "not-allowed";
-  }
-
-  // যদি ইতোমধ্যেই পরীক্ষা পাস করে থাকে তবে সার্টিফিকেট ডাউনলোডের বাটন দৃশ্যমান হবে
-  if (activeMainCourseId && userProgress[`cert_${activeMainCourseId}`]) {
-    if (downloadCertBtn) downloadCertBtn.classList.remove("hidden");
-  } else {
-    if (downloadCertBtn) downloadCertBtn.classList.add("hidden");
-  }
-}
-
-// ==================== Student Final Exam Execution ====================
+// Student Final Exam Execution
 if (startFinalExamBtn) {
   startFinalExamBtn.addEventListener("click", async () => {
     if (!activeMainCourseId) {
@@ -890,7 +1075,7 @@ if (submitFinalExamBtn) {
   });
 }
 
-// ==================== Certificate Download Handler ====================
+// Certificate Download Handler
 if (downloadCertBtn) {
   downloadCertBtn.addEventListener("click", async () => {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -922,12 +1107,12 @@ if (downloadCertBtn) {
         certTemplate.style.display = "none";
       });
     } else {
-      alert("সার্টিফিকেট জেনারেটর সম্পূর্ণ লোড হয়নি। দয়া করে পেজ রিফ্রেশ করে আবার চেষ্টা করুন।");
+      alert("সার্টিফিকেট জেনারেটর সম্পূর্ণ লোড হয়নি। পেজ রিফ্রেশ করুন।");
     }
   });
 }
 
-// ==================== Step 2: Admin Lesson Management ====================
+// Step 2: Admin Lesson Management
 if (addCourseForm) {
   addCourseForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -983,7 +1168,8 @@ async function loadAdminCourses() {
     adminCourseTableBody.appendChild(tr);
   });
 }
-// Analytics Data & Chart JS Logic
+
+// Analytics Logic
 let enrollmentChartInstance = null;
 let progressChartInstance = null;
 
@@ -1081,6 +1267,7 @@ function renderProgressChart(notStarted, inProgress, completed) {
     }
   });
 }
+
 window.editCourse = async (id) => {
   const docRef = doc(db, "courses", id);
   const docSnap = await getDoc(docRef);
@@ -1125,11 +1312,8 @@ window.deleteCourse = async (id) => {
     loadAdminCourses();
   }
 };
-// ==========================================
-// Gamification System Functions
-// ==========================================
 
-// ১. পয়েন্ট ডাটাবেসে যোগ করার ফাংশন
+// Gamification Logic
 async function addPointsToUser(pointsToAdd) {
   if (!currentUser || !currentUser.uid) return;
 
@@ -1149,7 +1333,6 @@ async function addPointsToUser(pointsToAdd) {
   }
 }
 
-// ২. পয়েন্ট অনুযায়ী ব্যাজ ও UI আপডেট
 function updatePointsAndBadgeDisplay(points) {
   const pointsEl = document.getElementById('userPointsDisplay');
   const badgeEl = document.getElementById('userBadgeDisplay');
@@ -1176,7 +1359,6 @@ function updatePointsAndBadgeDisplay(points) {
   }
 }
 
-// ৩. লিডারবোর্ড লোড করার ফাংশন
 async function loadLeaderboard() {
   const listContainer = document.getElementById('leaderboardList');
   if (!listContainer) return;
@@ -1223,12 +1405,11 @@ async function loadLeaderboard() {
   }
 }
 
-// ৪. লিডারবোর্ড বাটনের ইভেন্ট লিসেনার
 document.getElementById('openLeaderboardBtn')?.addEventListener('click', () => {
-  document.getElementById('leaderboardModal')?.classList.remove('hidden');
-  loadLeaderboard();
+    document.getElementById('leaderboardModal')?.classList.remove('hidden');
+    loadLeaderboard();
 });
 
 document.getElementById('closeLeaderboardModal')?.addEventListener('click', () => {
-  document.getElementById('leaderboardModal')?.classList.add('hidden');
+    document.getElementById('leaderboardModal')?.classList.add('hidden');
 });
