@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevLearn Hub - Learning App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Markdown Parser for Theory Code Blocks & Text -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Certificate PDF Generator Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <i class="fa-solid fa-graduation-cap logo-icon"></i>
+        <h1 class="logo-text">DevLearn Hub</h1>
+      </div>
+      <div id="userNav" class="user-nav hidden">
+        <span id="userRoleBadge" class="badge">Role</span>
+        <span id="userNameDisplay" class="user-email">user@mail.com</span>
+        <button id="logoutBtn" class="btn btn-slate btn-sm">লগআউট</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Auth View: Login / Register Form -->
+  <main id="authContainer" class="auth-container">
+    <div class="auth-box">
+      <h2 id="authTitle">লগইন করুন</h2>
+      
+      <form id="authForm">
+        <div class="form-group hidden" id="nameGroup">
+          <label>পূর্ণ নাম</label>
+          <input type="text" id="fullName" placeholder="আপনার নাম লিখুন">
+        </div>
+        
+        <div class="form-group">
+          <label>ইমেইল এড্রেস</label>
+          <input type="email" id="email" required placeholder="example@gmail.com">
+        </div>
+
+        <div class="form-group">
+          <label>পাসওয়ার্ড</label>
+          <input type="password" id="password" required placeholder="******">
+        </div>
+
+        <div class="form-group hidden" id="roleGroup">
+          <label>একাউন্ট এর ধরন (Role)</label>
+          <select id="userRole">
+            <option value="student">Student</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <button type="submit" id="authSubmitBtn" class="btn btn-emerald btn-block">লগইন</button>
+      </form>
+
+      <p class="toggle-auth">
+        <span id="toggleText">একাউন্ট নেই?</span> 
+        <a href="#" id="toggleAuthBtn">রেজিস্ট্রেশন করুন</a>
+      </p>
+    </div>
+  </main>
+
+  <!-- Student Dashboard View -->
+  <main id="studentDashboard" class="main-container hidden">
+    <section class="sidebar">
+      <!-- Course Progress Bar Section -->
+      <div class="progress-box">
+        <div class="progress-header">
+          <span>আপনার অগ্রগতি</span>
+          <span id="progressText">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div id="progressBarFill" class="progress-bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+<!-- Points & Badge Card -->
+      <div class="points-badge-card" style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: center;">
+        <div style="font-size: 13px; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">আপনার অর্জন</div>
+        <div style="font-size: 24px; font-weight: bold; color: #f59e0b; margin: 5px 0;">
+          <i class="fa-solid fa-coins"></i> <span id="userPointsDisplay">0</span> PTS
+        </div>
+        <div id="userBadgeDisplay" style="display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; background: #334155; color: #cbd5e1;">
+          🥉 Rookie
+        </div>
+        <button id="openLeaderboardBtn" class="btn btn-slate btn-sm" style="width: 100%; margin-top: 12px;">
+          <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> লিডারবোর্ড দেখুন
+        </button>
+      </div>
+      <!-- Student Course Selector -->
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label style="font-weight: bold; color: #cbd5e1; display: block; margin-bottom: 5px;">
+          <i class="fa-solid fa-graduation-cap"></i> কোর্স নির্বাচন করুন:
+        </label>
+        <select id="studentCourseSelect" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid rgba(255,255,255,0.1);">
+          <option value="">-- কোর্স বেছে নিন --</option>
+        </select>
+      </div>
+
+      <h2 class="section-title"><i class="fa-solid fa-list-ul"></i> লেসন তালিকা</h2>
+      <div id="courseList" class="course-list"></div>
+
+      <!-- Final Exam & Certificate Section in Student Sidebar -->
+      <div id="finalExamSection" class="mt-4 p-3" style="background: rgba(15, 23, 42, 0.6); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 20px;">
+        <h3 style="font-size: 14px; color: #cbd5e1; margin-bottom: 10px;"><i class="fa-solid fa-award"></i> ফাইনাল পরীক্ষা ও সনদপত্র</h3>
+        <button id="startFinalExamBtn" class="btn btn-emerald" style="width: 100%; padding: 10px;" disabled>
+          🔒 ফাইনাল এক্সাম (সব লেসন শেষ করুন)
+        </button>
+        <button id="downloadCertBtn" class="btn btn-emerald hidden" style="width: 100%; margin-top: 10px; padding: 10px; background-color: #059669;">
+          🎓 সার্টিফিকেট ডাউনলোড করুন
+        </button>
+      </div>
+    </section>
+
+    <section class="content-area">
+      <div class="content-top">
+        <div class="video-container">
+          <iframe id="videoPlayer" src="" title="Video Player" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <h2 id="lessonTitle" class="lesson-title">লেসন বেছে নিন</h2>
+        
+        <!-- থিওরি ও কুইজ দেখার ডিসপ্লে সেকশন -->
+        <div id="lessonTheoryContainer" class="lesson-desc mt-3">
+          <p id="lessonDesc">কোর্স দেখতে তালিকায় ক্লিক করুন।</p>
+          <!-- পপ-আপ খোলার বাটন -->
+          <button id="openTheoryBtn" class="btn btn-slate mt-2" style="margin-top: 10px;">
+            <i class="fa-solid fa-book-open"></i> থিওরি পড়ুন
+          </button>
+        </div>
+
+        <div id="studentQuizSection" class="mt-4 hidden">
+          <h3><i class="fa-solid fa-pen-to-square"></i> কুইজ ও পরীক্ষা</h3>
+          <div id="quizDisplayContainer"></div>
+        </div>
+      </div>
+      <div class="action-bar">
+        <button id="completeBtn" class="btn btn-emerald">
+          <i class="fa-regular fa-circle-check"></i> সম্পন্ন হিসেবে মার্ক করুন
+        </button>
+        <span id="statusBadge" class="status-badge"></span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Admin Dashboard View -->
+  <main id="adminDashboard" class="admin-container hidden">
+    <div class="admin-main-wrapper">
+      
+      <!-- বাঁ পাশের অংশ: মূল ফর্ম ও সকল লেসন সেকশন -->
+      <div class="admin-content-area">
+        
+        <!-- ১. মূল কোর্স ম্যানেজমেন্ট -->
+        <div class="admin-box mb-4" style="margin-bottom: 20px;">
+          <h2 class="section-title"><i class="fa-solid fa-folder-plus"></i> ১. মূল কোর্স ম্যানেজমেন্ট</h2>
+          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <input type="text" id="newCourseTitle" class="form-control" placeholder="নতুন কোর্সের নাম (যেমন: React JS, Python Masterclass)" style="flex: 1; padding: 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid rgba(255,255,255,0.1);">
+            <button type="button" id="createCourseBtn" class="btn btn-emerald" style="white-space: nowrap;"><i class="fa-solid fa-plus"></i> কোর্স তৈরি করুন</button>
+          </div>
+          <div class="created-courses-wrapper" style="margin-top: 15px; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+            <span style="font-size: 13px; color: #94a3b8; display: block; margin-bottom: 10px;"><i class="fa-solid fa-list-check"></i> তৈরি করা কোর্সসমূহ (এডিট বা ডিলিট করতে নির্বাচন করুন):</span>
+            <div id="adminMainCourseList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+          </div>
+        </div>
+
+        <!-- ২. কোর্সে নতুন লেসন যোগ করুন -->
+        <div class="admin-box">
+          <h2 class="section-title" id="adminFormTitle"><i class="fa-solid fa-plus-circle"></i> ২. কোর্সে নতুন লেসন যোগ করুন</h2>
+          <form id="addCourseForm" class="admin-form">
+            <input type="hidden" id="editCourseId">
+            
+            <div class="form-group">
+              <label>কোর্স নির্বাচন করুন</label>
+              <select id="parentCourseSelect" required style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid rgba(255,255,255,0.1);">
+                <option value="">-- কোর্স সিলেক্ট করুন --</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>লেসনের শিরোনাম (Lesson Name)</label>
+              <input type="text" id="courseTitle" required placeholder="যেমন: Lesson 1: Introduction to Components">
+            </div>
+
+            <div class="form-group">
+              <label>ইউটিউব ভিডিও ID বা URL</label>
+              <input type="text" id="youtubeId" required placeholder="যেমন: https://www.youtube.com/watch?v=dGcsHMXbSOA">
+            </div>
+
+            <div class="form-group">
+              <label>থিওরি / পড়া (Markdown বা Text)</label>
+              <textarea id="courseTheory" rows="5" required placeholder="থিওরির বিস্তারিত বিষয়বস্তু লিখুন..."></textarea>
+            </div>
+
+            <div class="form-group border p-3 rounded" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 1rem;">
+              <label style="font-weight: bold; display: block; margin-bottom: 8px;"><i class="fa-solid fa-question-circle"></i> কুইজ যুক্ত করুন</label>
+              <div id="quizContainer"></div>
+              <button type="button" id="addQuizBtn" class="btn btn-slate btn-sm mt-2" style="margin-top: 10px;">
+                <i class="fa-solid fa-plus"></i> নতুন প্রশ্ন যোগ করুন
+              </button>
+            </div>
+
+            <div class="admin-form-btns">
+              <button type="submit" id="saveCourseBtn" class="btn btn-emerald">লেসন পাবলিশ করুন</button>
+              <button type="button" id="cancelEditBtn" class="btn btn-slate hidden">বাতিল করুন</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ৩. মূল কোর্সের ফাইনাল পরীক্ষা তৈরি করুন -->
+        <div class="admin-box mt-6" style="margin-top: 20px;">
+          <h2 class="section-title"><i class="fa-solid fa-graduation-cap"></i> ৩. মূল কোর্সের ফাইনাল পরীক্ষা তৈরি করুন</h2>
+          <div class="form-group">
+            <label>কোর্স নির্বাচন করুন:</label>
+            <select id="adminFinalExamCourseSelect" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid rgba(255,255,255,0.1);">
+              <option value="">-- কোর্স বেছে নিন --</option>
+            </select>
+          </div>
+
+          <div id="finalQuestionsContainer" style="margin-top: 15px;"></div>
+
+          <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <button type="button" id="addFinalQuestionBtn" class="btn btn-slate">
+              <i class="fa-solid fa-plus"></i> নতুন ফাইনাল প্রশ্ন যোগ করুন
+            </button>
+            <button type="button" id="saveFinalExamBtn" class="btn btn-emerald">
+              <i class="fa-solid fa-floppy-disk"></i> ফাইনাল এক্সাম সেভ করুন
+            </button>
+          </div>
+        </div>
+
+        <!-- ৪. আপলোডকৃত লেসনসমূহ টেবিল -->
+        <div class="admin-box mt-6" style="margin-top: 20px;">
+          <h2 class="section-title"><i class="fa-solid fa-layer-group"></i> আপলোডকৃত লেসনসমূহ</h2>
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>কোর্স</th>
+                  <th>লেসনের নাম</th>
+                  <th>কুইজ সংখ্যা</th>
+                  <th>অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="adminCourseTableBody">
+                <tr><td colspan="4" class="text-center">লেসন লোড হচ্ছে...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div> <!-- admin-content-area end -->
+
+      <!-- ডান পাশের অ্যানালিটিক্স সাইডবার -->
+      <aside class="admin-sidebar-analytics">
+        <div class="admin-box">
+          <h3 class="section-title"><i class="fa-solid fa-chart-pie"></i> অ্যানালিটিক্স ওভারভিউ</h3>
+
+          <div class="analytics-card">
+            <h4>মোট নিবন্ধিত স্টুডেন্ট</h4>
+            <span id="totalStudentsCount">0</span>
+          </div>
+
+          <div class="chart-card">
+            <h4>কোর্স এনরোলমেন্ট</h4>
+            <canvas id="enrollmentChart"></canvas>
+          </div>
+
+          <div class="chart-card">
+            <h4>অগ্রগতির অবস্থা</h4>
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
+      </aside>
+
+    </div> <!-- admin-main-wrapper end -->
+  </main>
+
+  <!-- Theory Modal (Pop-up) -->
+  <div id="theoryModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-book"></i> থিওরি ও পাঠ্যবিষয়</h3>
+        <span id="closeTheoryModal" class="close-btn">&times;</span>
+      </div>
+      <div id="modalTheoryBody" class="modal-body">
+        <p>থিওরি লোড হচ্ছে...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Final Exam Modal (Pop-up for Student) -->
+  <div id="finalExamModal" class="modal hidden">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-graduation-cap"></i> কোর্সের ফাইনাল পরীক্ষা</h3>
+        <span id="closeFinalExamModal" class="close-btn">&times;</span>
+      </div>
+      <div id="finalExamModalBody" class="modal-body">
+        <p style="color: #94a3b8; margin-bottom: 15px;">পাস করার জন্য অন্তত ৮০% সঠিক উত্তর দিতে হবে।</p>
+        <div id="finalQuestionsRenderArea"></div>
+        <button id="submitFinalExamBtn" class="btn btn-emerald mt-4" style="width: 100%; margin-top: 15px; padding: 12px;">
+          পরীক্ষা সাবমিট করুন
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden PDF Certificate Template -->
+  <div id="certificateTemplate" style="display: none;">
+    <div style="width: 800px; padding: 50px; border: 10px solid #10b981; text-align: center; background: #0f172a; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; box-sizing: border-box; margin: auto;">
+      <h1 style="color: #10b981; font-size: 40px; margin-bottom: 5px; font-weight: bold;">DevLearn Hub</h1>
+      <p style="letter-spacing: 3px; color: #94a3b8; text-transform: uppercase; font-size: 13px; margin-top: 0;">Certificate of Completion</p>
+      
+      <p style="margin-top: 40px; font-size: 16px; color: #cbd5e1;">এই মর্মে সত্যায়িত করা যাচ্ছে যে,</p>
+      <h2 id="certStudentName" style="font-size: 34px; color: #38bdf8; margin: 15px 0; border-bottom: 2px solid #38bdf8; display: inline-block; padding-bottom: 5px;">ইউজারের নাম</h2>
+      <p style="font-size: 16px; color: #cbd5e1; margin-top: 15px;">সফলতার সাথে এবং ৮০%+ নম্বর পেয়ে</p>
+      <h3 id="certCourseName" style="font-size: 26px; color: #f59e0b; margin: 15px 0;">কোর্সের নাম</h3>
+      <p style="font-size: 14px; color: #94a3b8; line-height: 1.5;">কোর্সটির সকল লেসন এবং ফাইনাল মূল্যায়নে উত্তীর্ণ হয়ে এই সনদ অর্জন করেছেন।</p>
+      
+      <div style="margin-top: 60px; display: flex; justify-content: space-between; padding: 0 40px; text-align: center; font-size: 13px; color: #94a3b8;">
+        <div>
+          <p style="color:#fff; font-weight:bold; margin-bottom: 2px;">DevLearn Hub Authority</p>
+          <p style="margin-top:0;">অনুমোদিত স্বাক্ষর</p>
+        </div>
+        <div>
+          <p id="certDate" style="color:#fff; font-weight:bold; margin-bottom: 2px;"></p>
+          <p style="margin-top:0;">ইস্যুর তারিখ</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
