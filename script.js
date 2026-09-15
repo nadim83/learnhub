@@ -1094,43 +1094,51 @@ if (downloadCertBtn) {
 
     if (certTemplate && window.html2pdf) {
 
-      // পুরনো স্টাইল রিসেট (আগের কল থেকে residual style থাকলে সেটা মুছে ফেলা)
       certTemplate.removeAttribute("style");
-
-      // স্ক্রিনের বাইরে (off-canvas) নিয়ে যাওয়া — negative z-index এর বদলে এটাই নির্ভরযোগ্য
       certTemplate.style.display = "block";
       certTemplate.style.position = "fixed";
       certTemplate.style.top = "0";
-      certTemplate.style.left = "-99999px"; // viewport এর বাইরে, তাই flash দেখা যাবে না
+      certTemplate.style.left = "-99999px";
       certTemplate.style.width = "800px";
       certTemplate.style.background = "#ffffff";
 
-      // টেমপ্লেট আবার লুকানো ও স্টাইল ক্লিন করার helper — একবারই কল হবে
       let restored = false;
       const restoreTemplate = () => {
         if (restored) return;
         restored = true;
         certTemplate.style.display = "none";
         certTemplate.removeAttribute("style");
-        certTemplate.style.display = "none"; // আবার হাইড অবস্থায় রাখা
+        certTemplate.style.display = "none";
         clearTimeout(safetyTimer);
       };
 
-      // Safety net: html2pdf এর promise resolve/reject না করলেও ৮ সেকেন্ড পর জোর করে হাইড
-      const safetyTimer = setTimeout(restoreTemplate, 8000);
+      const safetyTimer = setTimeout(restoreTemplate, 10000);
 
-      // ব্রাউজারকে render করার সময় দেওয়া
       setTimeout(() => {
         const opt = {
           margin:       0,
           filename:     `${studentName}_Certificate.pdf`,
           image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, logging: false },
+          html2canvas:  { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
         };
 
-        html2pdf().from(certTemplate).set(opt).save()
-          .then(() => {
+        // .save() এর বদলে blob আকারে জেনারেট করে নিজে ম্যানুয়ালি ডাউনলোড করানো হচ্ছে
+        // এতে html2pdf/jsPDF এর internal navigation logic এড়ানো যায়, যেটা মোবাইলে
+        // পেজ সাদা হয়ে যাওয়ার মূল কারণ
+        html2pdf().from(certTemplate).set(opt).outputPdf('blob')
+          .then((pdfBlob) => {
+            const blobUrl = URL.createObjectURL(pdfBlob);
+            const link = document.createElement('a');
+            link.href = blobUrl;
+            link.download = `${studentName}_Certificate.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // কিছুক্ষণ পর blob url মেমরি থেকে মুছে ফেলা
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+
             restoreTemplate();
           })
           .catch((err) => {
