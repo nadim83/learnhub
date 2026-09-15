@@ -708,33 +708,40 @@ input:focus, select:focus, textarea:focus, .form-control:focus {
   text-align: center;
 }
 @keyframes certSpin { to { transform: rotate(360deg); } }
-/* মোবাইল স্ক্রিনের জন্য গ্লোবাল রেস্পন্সিভ ফিক্স */
+/* --- মোবাইল ডিভাইসের জন্য গ্লোবাল অ্যাডমিন প্যানেল রেস্পন্সিভ ফিক্স --- */
 @media (max-width: 768px) {
-  /* সব অ্যাডমিন বক্স যেন মোবাইলে ফুল উইথ নেয় এবং প্যাডিং ঠিক থাকে */
+  /* সব অ্যাডমিন বক্সের প্যাডিং ও মার্জিন ঠিক রাখা */
   .admin-box {
     padding: 12px !important;
     margin-bottom: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  /* ফর্মে থাকা ইনপুট এবং বাটনগুলো নিচে নিচে থাকবে */
-  .admin-box .flex, 
-  .admin-box form, 
-  .admin-box div[style*="display: flex"] {
+  /* যেসব জায়গায় ইনলাইন স্টাইল দিয়ে ফ্লেক্স করা আছে, সেগুলোকে মোবাইলে নিচে নিচে নামিয়ে দেওয়া */
+  .admin-box div[style*="display: flex"],
+  .admin-box form,
+  .admin-box .flex {
+    display: flex !important;
     flex-direction: column !important;
     gap: 10px !important;
+    width: 100% !important;
   }
 
-  /* ইনপুট ফিল্ড ও বাটন মোবাইলে ১০০% উইথ হবে */
+  /* ইনপুট, সিলেক্ট, টেক্সটএরিয়া এবং বাটনগুলো ১০০% উইথ এবং মোবাইল ফ্রেন্ডলি করা */
   .admin-box input, 
   .admin-box select, 
-  .admin-box button, 
-  .admin-box textarea {
+  .admin-box textarea, 
+  .admin-box button {
     width: 100% !important;
     max-width: 100% !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
   }
 
-  /* হেডার বা টাইটেল সাইজ একটু ছোট করা */
-  .section-title {
+  /* হেডিং বা টাইটেল সাইজ একটু ছোট করা যাতে মোবাইলে না ভাঙে */
+  .admin-box .section-title {
     font-size: 15px !important;
+    word-break: break-word;
   }
 }
