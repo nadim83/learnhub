@@ -1125,7 +1125,26 @@ if (downloadCertBtn) {
           margin:       0,
           filename:     `${studentName}_Certificate.pdf`,
           image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 },
+          html2canvas:  {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            // capture-এর সময় শুধু cloned document-এ overlay লুকিয়ে template-কে
+            // normal position-এ নিয়ে আসা হচ্ছে, লাইভ পেজের ভিজ্যুয়াল অবস্থা না বদলিয়ে।
+            // এতেই blank/সাদা PDF সমস্যাটা সমাধান হয়, কারণ overlay আর z-index/fixed
+            // positioning html2canvas এর ক্যাপচারে হস্তক্ষেপ করে না।
+            onclone: (clonedDoc) => {
+              const clonedOverlay = clonedDoc.getElementById('certLoadingOverlay');
+              if (clonedOverlay) clonedOverlay.style.display = 'none';
+              const clonedTemplate = clonedDoc.getElementById('certificateTemplate');
+              if (clonedTemplate) {
+                clonedTemplate.style.display = 'block';
+                clonedTemplate.style.position = 'static';
+                clonedTemplate.style.zIndex = 'auto';
+              }
+            }
+          },
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
         };
 
