@@ -1079,7 +1079,7 @@ if (submitFinalExamBtn) {
 if (downloadCertBtn) {
   downloadCertBtn.addEventListener("click", async () => {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-    const studentName = userDoc.exists() && userDoc.data().fullName ? userDoc.data().fullName : currentUser.email;
+   const studentName = userDoc.exists() && (userDoc.data().fullName || userDoc.data().name) ? (userDoc.data().fullName || userDoc.data().name) : "Student";
 
     const mainCourseDoc = currentMainCourses.find(c => c.id === activeMainCourseId);
     const courseTitle = mainCourseDoc ? mainCourseDoc.title : "DevLearn Hub Course";
