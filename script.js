@@ -1116,7 +1116,7 @@ if (downloadCertBtn) {
         const opt = {
           margin: 0,
           filename: `${studentName}_Certificate.pdf`,
-          image: { type: 'jpeg', quality: 1.0 },
+          image: { type: 'jpeg', quality: 0.98 },
           html2canvas: {
             scale: 2,
             useCORS: true,
@@ -1135,8 +1135,8 @@ if (downloadCertBtn) {
             }
           },
           jsPDF: {
-            unit: 'mm',
-            format: 'a4',
+            unit: 'px',
+            format: [1122, 794],
             orientation: 'landscape',
             compress: true
           }
