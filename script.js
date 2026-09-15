@@ -1075,6 +1075,7 @@ if (submitFinalExamBtn) {
   });
 }
 
+// Certificate Download Handler
 if (downloadCertBtn) {
   downloadCertBtn.addEventListener("click", async () => {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -1087,46 +1088,36 @@ if (downloadCertBtn) {
     const certCourseName = document.getElementById("certCourseName");
     const certDate = document.getElementById("certDate");
     const certTemplate = document.getElementById("certificateTemplate");
-    const overlay = document.getElementById("certLoadingOverlay");
 
     if (certStudentName) certStudentName.textContent = studentName;
     if (certCourseName) certCourseName.textContent = courseTitle;
     if (certDate) certDate.textContent = new Date().toLocaleDateString("bn-BD");
+
+    const overlay = document.getElementById("certLoadingOverlay");
 
     if (certTemplate && window.html2pdf) {
 
       // মোবাইলে horizontal scroll আটকানোর জন্য
       document.body.style.overflow = "hidden";
 
-      // Template টাকে স্বাভাবিক জায়গায় (top:0, left:0) রাখা হচ্ছে যাতে
-      // html2canvas ঠিকমতো render করতে পারে — কিন্তু overlay এর নিচে থাকায়
-      // ইউজার এটা দেখতে পাবে না
-      certTemplate.removeAttribute("style");
+      // Template স্বাভাবিক জায়গায় (top:0, left:0) দেখানো হচ্ছে যাতে html2canvas
+      // ঠিকমতো render করতে পারে (negative left/position ব্যবহার করলে blank/empty PDF হয়)
       certTemplate.style.display = "block";
-      certTemplate.style.position = "fixed";
-      certTemplate.style.top = "0";
-      certTemplate.style.left = "0";
-      certTemplate.style.width = "800px";
-      certTemplate.style.background = "#ffffff";
-      certTemplate.style.zIndex = "1"; // overlay এর নিচে
 
-      // Overlay দেখানো (এটাই ইউজার দেখবে, certTemplate নয়)
-      if (overlay) {
-        overlay.style.display = "flex";
-      }
+      // Overlay দেখানো হচ্ছে — এটাই ইউজার দেখবে, certTemplate নয় (z-index দিয়ে ঢাকা)
+      if (overlay) overlay.style.display = "flex";
 
       let restored = false;
       const restoreTemplate = () => {
         if (restored) return;
         restored = true;
         certTemplate.style.display = "none";
-        certTemplate.removeAttribute("style");
-        certTemplate.style.display = "none";
         if (overlay) overlay.style.display = "none";
         document.body.style.overflow = "";
         clearTimeout(safetyTimer);
       };
 
+      // Safety net: html2pdf এর promise কখনো resolve/reject না করলেও ১৫ সেকেন্ড পর জোর করে হাইড
       const safetyTimer = setTimeout(restoreTemplate, 15000);
 
       setTimeout(() => {
@@ -1138,6 +1129,9 @@ if (downloadCertBtn) {
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
         };
 
+        // .save() এর বদলে blob আকারে জেনারেট করে নিজে ম্যানুয়ালি ডাউনলোড করানো হচ্ছে
+        // এতে html2pdf/jsPDF এর internal navigation এড়ানো যায়, যেটা মোবাইলে
+        // ডাউনলোডের পর পেজ সাদা হয়ে যাওয়ার মূল কারণ ছিল
         html2pdf().from(certTemplate).set(opt).outputPdf('blob')
           .then((pdfBlob) => {
             if (!pdfBlob || pdfBlob.size < 1000) {
