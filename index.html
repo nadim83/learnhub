@@ -321,19 +321,17 @@
   @keyframes certSpin { to { transform: rotate(360deg); } }
 </style>
 
-<!-- index.html-এর সার্টিফিকেট টেমপ্লেটটি এভাবে রাখুন -->
-<!-- index.html-এর সার্টিফিকেট টেমপ্লেটটি এভাবে রাখুন -->
-<div id="certificateTemplate" style="display: none; width: 1122px; height: 794px; background: #ffffff; color: #000000; padding: 40px; box-sizing: border-box; font-family: 'SolaimanLipi', sans-serif;">
-    <!-- সার্টিফিকেটের ভেতরের কন্টেন্ট এখানে থাকবে -->
-</div>
+<!-- সম্পূর্ণ সার্টিফিকেট টেমপ্লেটটি এভাবে রাখুন -->
+<div id="certificateTemplate" style="display: none; width: 1122px; height: 794px; background: #ffffff; color: #000000; padding: 50px; box-sizing: border-box; font-family: 'SolaimanLipi', sans-serif; position: relative; text-align: center;">
+    
     <!-- Top Header -->
-    <div>
+    <div style="margin-bottom: 40px;">
       <h1 style="color: #059669; font-size: 48px; margin: 0 0 5px 0; font-weight: bold; line-height: 1.2;">DevLearn Hub</h1>
       <p style="letter-spacing: 4px; color: #64748b; text-transform: uppercase; font-size: 14px; margin: 0; font-weight: 600;">Certificate of Completion</p>
     </div>
 
     <!-- Middle Body Content -->
-    <div style="margin: 0 auto; width: 100%;">
+    <div style="margin: 0 auto; width: 100%; margin-bottom: 60px;">
       <p style="margin: 0 0 10px 0; font-size: 20px; color: #334155;">এই মর্মে সত্যায়িত করা যাচ্ছে যে,</p>
       <h2 id="certStudentName" style="font-size: 38px; color: #0284c7; margin: 10px 0 15px 0; border-bottom: 3px solid #0284c7; display: inline-block; padding-bottom: 4px; max-width: 900px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ইউজারের নাম</h2>
       <p style="font-size: 20px; color: #334155; margin: 10px 0;">সফলতার সাথে এবং ৮০%+ নম্বর পেয়ে</p>
@@ -342,18 +340,17 @@
     </div>
 
     <!-- Bottom Footer (Signatures / Dates) -->
-    <div style="display: flex; justify-content: space-between; width: 950px; margin: 0 auto; text-align: center; font-size: 15px; color: #64748b;">
+    <div style="display: flex; justify-content: space-between; width: 950px; margin: 0 auto; text-align: center; font-size: 15px; color: #64748b; position: absolute; bottom: 50px; left: 50px; right: 50px;">
       <div style="text-align: left;">
         <p style="color:#0f172a; font-weight:bold; margin-bottom: 3px; font-size: 16px;">DevLearn Hub Authority</p>
-        <p style="margin-top:0; border-top: 1px solid #cbd5e1; padding-top: 4px;">অনুমোদিত স্বাক্ষর</p>
+        <p style="margin-top:0; border-top: 1px solid #cbd5e1; padding-top: 4px; width: 200px;">অনুমোদিত স্বাক্ষর</p>
       </div>
       <div style="text-align: right;">
         <p id="certDate" style="color:#0f172a; font-weight:bold; margin-bottom: 3px; font-size: 16px;"></p>
-        <p style="margin-top:0; border-top: 1px solid #cbd5e1; padding-top: 4px;">ইস্যুর তারিখ</p>
+        <p style="margin-top:0; border-top: 1px solid #cbd5e1; padding-top: 4px; width: 200px;">ইস্যুর তারিখ</p>
       </div>
     </div>
 
-  </div>
 </div>
   <script type="module" src="script.js"></script>
 </body>
