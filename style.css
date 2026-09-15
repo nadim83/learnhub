@@ -745,3 +745,18 @@ input:focus, select:focus, textarea:focus, .form-control:focus {
     word-break: break-word;
   }
 }
+/* কাস্টম রেস্পন্সিভ ফ্লেক্স বক্স */
+.admin-flex-box {
+  display: flex;
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .admin-flex-box {
+    flex-direction: column !important;
+  }
+  .admin-flex-box input,
+  .admin-flex-box button {
+    width: 100% !important;
+  }
+}
