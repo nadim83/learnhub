@@ -1121,6 +1121,14 @@ if (downloadCertBtn) {
       const safetyTimer = setTimeout(restoreTemplate, 15000);
 
       setTimeout(() => {
+        // certificate-টার আসল pixel সাইজ মেপে সেই অনুযায়ী PDF page-এর সাইজ ঠিক করা হচ্ছে,
+        // যাতে page আর content-এর সাইজ একদম মিলে যায় এবং কোনো ফাঁকা জায়গা না থাকে
+        const certInner = document.getElementById("certInner") || certTemplate.firstElementChild;
+        const rect = certInner.getBoundingClientRect();
+        const pxToIn = 96; // স্ট্যান্ডার্ড CSS px-to-inch conversion
+        const pdfWidthIn = rect.width / pxToIn;
+        const pdfHeightIn = rect.height / pxToIn;
+
         const opt = {
           margin:       0,
           filename:     `${studentName}_Certificate.pdf`,
@@ -1145,13 +1153,19 @@ if (downloadCertBtn) {
               }
             }
           },
-          jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+          // fixed 'a4'/'letter' এর বদলে certificate-এর আসল সাইজ অনুযায়ী custom page format —
+          // এতে page আর content একই সাইজ হয়, কোনো blank margin থাকে না
+          jsPDF:        {
+            unit: 'in',
+            format: [pdfWidthIn, pdfHeightIn],
+            orientation: pdfWidthIn >= pdfHeightIn ? 'landscape' : 'portrait'
+          }
         };
 
         // .save() এর বদলে blob আকারে জেনারেট করে নিজে ম্যানুয়ালি ডাউনলোড করানো হচ্ছে
         // এতে html2pdf/jsPDF এর internal navigation এড়ানো যায়, যেটা মোবাইলে
         // ডাউনলোডের পর পেজ সাদা হয়ে যাওয়ার মূল কারণ ছিল
-        html2pdf().from(certTemplate).set(opt).outputPdf('blob')
+        html2pdf().from(certInner).set(opt).outputPdf('blob')
           .then((pdfBlob) => {
             if (!pdfBlob || pdfBlob.size < 1000) {
               throw new Error("Generated PDF is empty/too small");
