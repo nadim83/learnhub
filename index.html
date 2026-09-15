@@ -158,17 +158,20 @@
       <div class="admin-content-area">
         
         <!-- ১. মূল কোর্স ম্যানেজমেন্ট -->
-        <div class="admin-box mb-4" style="margin-bottom: 20px;">
-          <h2 class="section-title"><i class="fa-solid fa-folder-plus"></i> ১. মূল কোর্স ম্যানেজমেন্ট</h2>
-          <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <input type="text" id="newCourseTitle" class="form-control" placeholder="নতুন কোর্সের নাম (যেমন: React JS, Python Masterclass)" style="flex: 1; padding: 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid rgba(255,255,255,0.1);">
-            <button type="button" id="createCourseBtn" class="btn btn-emerald" style="white-space: nowrap;"><i class="fa-solid fa-plus"></i> কোর্স তৈরি করুন</button>
-          </div>
-          <div class="created-courses-wrapper" style="margin-top: 15px; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-            <span style="font-size: 13px; color: #94a3b8; display: block; margin-bottom: 10px;"><i class="fa-solid fa-list-check"></i> তৈরি করা কোর্সসমূহ (এডিট বা ডিলিট করতে নির্বাচন করুন):</span>
-            <div id="adminMainCourseList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
-          </div>
-        </div>
+       <div class="admin-box mb-4" style="margin-bottom: 20px;">
+  <h2 class="section-title"><i class="fa-solid fa-folder-plus"></i> ১. মূল কোর্স ম্যানেজমেন্ট</h2>
+  
+  <!-- এখানে flex-col এবং md:flex-row ব্যবহার করা হয়েছে যাতে মোবাইলে নিচে নিচে এবং বড় স্ক্রিনে পাশাপাশি থাকে -->
+  <div class="flex flex-col md:flex-row gap-3 mb-4">
+    <input type="text" id="newCourseTitle" class="form-control" placeholder="নতুন কোর্সের নাম (যেমন: React JS, Python Masterclass)" style="width: 100%; padding: 10px; border-radius: 6px; background: #0f172a; color: #fff; border: 1px solid rgba(255,255,255,0.1); flex: 1;">
+    <button type="button" id="createCourseBtn" class="btn btn-emerald w-full md:w-auto" style="white-space: nowrap; padding: 10px 16px;"><i class="fa-solid fa-plus"></i> কোর্স তৈরি করুন</button>
+  </div>
+
+  <div class="created-courses-wrapper" style="margin-top: 15px; background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+    <span style="font-size: 13px; color: #94a3b8; display: block; margin-bottom: 10px;"><i class="fa-solid fa-list-check"></i> তৈরি করা কোর্সসমূহ (এডিট বা ডিলিট করতে নির্বাচন করুন):</span>
+    <div id="adminMainCourseList" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+  </div>
+</div>
 
         <!-- ২. কোর্সে নতুন লেসন যোগ করুন -->
         <div class="admin-box">
