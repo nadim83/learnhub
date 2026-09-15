@@ -1075,7 +1075,7 @@ if (submitFinalExamBtn) {
   });
 }
 
-// Certificate Download Handler
+// Certificate Download Handler (Fixed with Proper Layout & Rendering)
 if (downloadCertBtn) {
   downloadCertBtn.addEventListener("click", async () => {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -1142,7 +1142,6 @@ if (downloadCertBtn) {
           }
         };
 
-        // সরাসরি পুরো টেমপ্লেট ক্যানভাসে ধরা হচ্ছে
         html2pdf().from(certTemplate).set(opt).outputPdf('blob')
           .then((pdfBlob) => {
             if (!pdfBlob || pdfBlob.size < 1000) {
@@ -1171,6 +1170,7 @@ if (downloadCertBtn) {
     }
   });
 }
+
 // Step 2: Admin Lesson Management
 if (addCourseForm) {
   addCourseForm.addEventListener("submit", async (e) => {
