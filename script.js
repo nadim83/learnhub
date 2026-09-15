@@ -1076,7 +1076,6 @@ if (submitFinalExamBtn) {
 }
 
 if (downloadCertBtn) {
-if (downloadCertBtn) {
   downloadCertBtn.addEventListener("click", async () => {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
     const studentName = userDoc.exists() && userDoc.data().fullName ? userDoc.data().fullName : currentUser.email;
@@ -1088,6 +1087,7 @@ if (downloadCertBtn) {
     const certCourseName = document.getElementById("certCourseName");
     const certDate = document.getElementById("certDate");
     const certTemplate = document.getElementById("certificateTemplate");
+    const overlay = document.getElementById("certLoadingOverlay");
 
     if (certStudentName) certStudentName.textContent = studentName;
     if (certCourseName) certCourseName.textContent = courseTitle;
@@ -1095,13 +1095,25 @@ if (downloadCertBtn) {
 
     if (certTemplate && window.html2pdf) {
 
+      // মোবাইলে horizontal scroll আটকানোর জন্য
+      document.body.style.overflow = "hidden";
+
+      // Template টাকে স্বাভাবিক জায়গায় (top:0, left:0) রাখা হচ্ছে যাতে
+      // html2canvas ঠিকমতো render করতে পারে — কিন্তু overlay এর নিচে থাকায়
+      // ইউজার এটা দেখতে পাবে না
       certTemplate.removeAttribute("style");
       certTemplate.style.display = "block";
       certTemplate.style.position = "fixed";
       certTemplate.style.top = "0";
-      certTemplate.style.left = "-99999px";
+      certTemplate.style.left = "0";
       certTemplate.style.width = "800px";
       certTemplate.style.background = "#ffffff";
+      certTemplate.style.zIndex = "1"; // overlay এর নিচে
+
+      // Overlay দেখানো (এটাই ইউজার দেখবে, certTemplate নয়)
+      if (overlay) {
+        overlay.style.display = "flex";
+      }
 
       let restored = false;
       const restoreTemplate = () => {
@@ -1110,10 +1122,12 @@ if (downloadCertBtn) {
         certTemplate.style.display = "none";
         certTemplate.removeAttribute("style");
         certTemplate.style.display = "none";
+        if (overlay) overlay.style.display = "none";
+        document.body.style.overflow = "";
         clearTimeout(safetyTimer);
       };
 
-      const safetyTimer = setTimeout(restoreTemplate, 10000);
+      const safetyTimer = setTimeout(restoreTemplate, 15000);
 
       setTimeout(() => {
         const opt = {
@@ -1124,11 +1138,11 @@ if (downloadCertBtn) {
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
         };
 
-        // .save() এর বদলে blob আকারে জেনারেট করে নিজে ম্যানুয়ালি ডাউনলোড করানো হচ্ছে
-        // এতে html2pdf/jsPDF এর internal navigation logic এড়ানো যায়, যেটা মোবাইলে
-        // পেজ সাদা হয়ে যাওয়ার মূল কারণ
         html2pdf().from(certTemplate).set(opt).outputPdf('blob')
           .then((pdfBlob) => {
+            if (!pdfBlob || pdfBlob.size < 1000) {
+              throw new Error("Generated PDF is empty/too small");
+            }
             const blobUrl = URL.createObjectURL(pdfBlob);
             const link = document.createElement('a');
             link.href = blobUrl;
@@ -1137,9 +1151,7 @@ if (downloadCertBtn) {
             link.click();
             document.body.removeChild(link);
 
-            // কিছুক্ষণ পর blob url মেমরি থেকে মুছে ফেলা
             setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
-
             restoreTemplate();
           })
           .catch((err) => {
