@@ -707,3 +707,4 @@ input:focus, select:focus, textarea:focus, .form-control:focus {
   font-size: 1.05rem;
   text-align: center;
 }
+@keyframes certSpin { to { transform: rotate(360deg); } }
