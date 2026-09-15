@@ -708,3 +708,25 @@ input:focus, select:focus, textarea:focus, .form-control:focus {
   text-align: center;
 }
 @keyframes certSpin { to { transform: rotate(360deg); } }
+/* Admin Panel Mobile Responsiveness */
+@media (max-width: 768px) {
+  .admin-main-wrapper {
+    flex-direction: column !important;
+    gap: 15px;
+  }
+  
+  .admin-content-area, .admin-sidebar-analytics {
+    width: 100% !important;
+  }
+
+  .admin-box {
+    padding: 15px !important;
+  }
+
+  /* টেবিল স্ক্রিন ছোট হলে যেন স্ক্রল করা যায় */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
