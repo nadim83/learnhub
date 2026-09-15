@@ -1075,7 +1075,6 @@ if (submitFinalExamBtn) {
   });
 }
 
-// Certificate Download Handler
 if (downloadCertBtn) {
   downloadCertBtn.addEventListener("click", async () => {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
@@ -1094,14 +1093,33 @@ if (downloadCertBtn) {
     if (certDate) certDate.textContent = new Date().toLocaleDateString("bn-BD");
 
     if (certTemplate && window.html2pdf) {
-      // টেমপ্লেটটি ডিসপ্লে ব্লক করে রেন্ডার করার জন্য দৃশ্যমান করা
+
+      // পুরনো স্টাইল রিসেট (আগের কল থেকে residual style থাকলে সেটা মুছে ফেলা)
+      certTemplate.removeAttribute("style");
+
+      // স্ক্রিনের বাইরে (off-canvas) নিয়ে যাওয়া — negative z-index এর বদলে এটাই নির্ভরযোগ্য
       certTemplate.style.display = "block";
       certTemplate.style.position = "fixed";
       certTemplate.style.top = "0";
-      certTemplate.style.left = "0";
-      certTemplate.style.zIndex = "-9999"; // ইউজারের চোখের আড়ালে রাখার জন্য
+      certTemplate.style.left = "-99999px"; // viewport এর বাইরে, তাই flash দেখা যাবে না
+      certTemplate.style.width = "800px";
+      certTemplate.style.background = "#ffffff";
 
-      // ব্রাউজারকে এলিমেন্টটি পুরোপুরি রিড ও রেন্ডার করার জন্য ৩০০ মিলিভিসেকেন্ড সময় দেওয়া
+      // টেমপ্লেট আবার লুকানো ও স্টাইল ক্লিন করার helper — একবারই কল হবে
+      let restored = false;
+      const restoreTemplate = () => {
+        if (restored) return;
+        restored = true;
+        certTemplate.style.display = "none";
+        certTemplate.removeAttribute("style");
+        certTemplate.style.display = "none"; // আবার হাইড অবস্থায় রাখা
+        clearTimeout(safetyTimer);
+      };
+
+      // Safety net: html2pdf এর promise resolve/reject না করলেও ৮ সেকেন্ড পর জোর করে হাইড
+      const safetyTimer = setTimeout(restoreTemplate, 8000);
+
+      // ব্রাউজারকে render করার সময় দেওয়া
       setTimeout(() => {
         const opt = {
           margin:       0,
@@ -1111,14 +1129,15 @@ if (downloadCertBtn) {
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
         };
 
-        html2pdf().from(certTemplate).set(opt).save().then(() => {
-          // ডাউনলোড শেষ হলে টেমপ্লেটটি আবার হাইড করে দেওয়া
-          certTemplate.style.display = "none";
-        }).catch(err => {
-          console.error("PDF Error:", err);
-          certTemplate.style.display = "none";
-          alert("সার্টিফিকেট ডাউনলোড করতে সমস্যা হয়েছে।");
-        });
+        html2pdf().from(certTemplate).set(opt).save()
+          .then(() => {
+            restoreTemplate();
+          })
+          .catch((err) => {
+            console.error("PDF Error:", err);
+            alert("সার্টিফিকেট ডাউনলোড করতে সমস্যা হয়েছে।");
+            restoreTemplate();
+          });
       }, 300);
 
     } else {
