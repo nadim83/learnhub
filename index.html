@@ -313,8 +313,10 @@
   </div>
 
 <!-- Hidden PDF Certificate Template -->
-<div id="certificateTemplate" style="display: none; width: 800px; background: #ffffff; margin: 0; position: fixed; left: -99999px; top: 0;">
-  ...আগের কন্টেন্ট অপরিবর্তিত...
+<div id="certLoadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0f172a; z-index:99999; align-items:center; justify-content:center; flex-direction:column; color:#fff; font-family:sans-serif;">
+  <div style="border:6px solid rgba(255,255,255,0.2); border-top-color:#10b981; border-radius:50%; width:50px; height:50px; animation: certSpin 1s linear infinite;"></div>
+  <p style="margin-top:20px; font-size:16px;">সার্টিফিকেট তৈরি হচ্ছে, একটু অপেক্ষা করুন...</p>
+</div>
     <div style="width: 800px; padding: 50px; border: 10px solid #10b981; text-align: center; background: #ffffff; color: #1e293b; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; box-sizing: border-box;">
       <h1 style="color: #059669; font-size: 40px; margin-bottom: 5px; font-weight: bold;">DevLearn Hub</h1>
       <p style="letter-spacing: 3px; color: #64748b; text-transform: uppercase; font-size: 13px; margin-top: 0;">Certificate of Completion</p>
