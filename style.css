@@ -708,25 +708,33 @@ input:focus, select:focus, textarea:focus, .form-control:focus {
   text-align: center;
 }
 @keyframes certSpin { to { transform: rotate(360deg); } }
-/* Admin Panel Mobile Responsiveness */
+/* মোবাইল স্ক্রিনের জন্য গ্লোবাল রেস্পন্সিভ ফিক্স */
 @media (max-width: 768px) {
-  .admin-main-wrapper {
-    flex-direction: column !important;
-    gap: 15px;
-  }
-  
-  .admin-content-area, .admin-sidebar-analytics {
-    width: 100% !important;
-  }
-
+  /* সব অ্যাডমিন বক্স যেন মোবাইলে ফুল উইথ নেয় এবং প্যাডিং ঠিক থাকে */
   .admin-box {
-    padding: 15px !important;
+    padding: 12px !important;
+    margin-bottom: 15px !important;
   }
 
-  /* টেবিল স্ক্রিন ছোট হলে যেন স্ক্রল করা যায় */
-  .table-responsive {
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+  /* ফর্মে থাকা ইনপুট এবং বাটনগুলো নিচে নিচে থাকবে */
+  .admin-box .flex, 
+  .admin-box form, 
+  .admin-box div[style*="display: flex"] {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+
+  /* ইনপুট ফিল্ড ও বাটন মোবাইলে ১০০% উইথ হবে */
+  .admin-box input, 
+  .admin-box select, 
+  .admin-box button, 
+  .admin-box textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* হেডার বা টাইটেল সাইজ একটু ছোট করা */
+  .section-title {
+    font-size: 15px !important;
   }
 }
