@@ -1122,6 +1122,8 @@ if (downloadCertBtn) {
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
+            x: 0,
+            y: 0,
             scrollX: 0,
             scrollY: 0,
             windowWidth: 1122,
@@ -1133,7 +1135,10 @@ if (downloadCertBtn) {
               if (clonedTemplate) {
                 clonedTemplate.style.display = 'block';
                 clonedTemplate.style.position = 'relative';
-                clonedTemplate.style.margin = '0';
+                clonedTemplate.style.top = '0px';
+                clonedTemplate.style.left = '0px';
+                clonedTemplate.style.margin = '0px';
+                clonedTemplate.style.transform = 'none';
               }
             }
           },
