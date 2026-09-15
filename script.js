@@ -1145,7 +1145,7 @@ if (downloadCertBtn) {
               }
             }
           },
-          jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+          jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
         };
 
         // .save() এর বদলে blob আকারে জেনারেট করে নিজে ম্যানুয়ালি ডাউনলোড করানো হচ্ছে
