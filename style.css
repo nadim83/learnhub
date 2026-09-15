@@ -680,7 +680,24 @@ input:focus, select:focus, textarea:focus, .form-control:focus {
   width: 90%;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
 }
+/* --- Certificate Print & Template Styles --- */
 
+/* প্রিন্ট করার সময় শুধু সার্টিফিকেটটি দেখানোর জন্য এবং বাকি সব সাইট হাইড করার জন্য */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #certificateTemplate, #certificateTemplate * {
+    visibility: visible;
+  }
+  #certificateTemplate {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
 .bkash-number-box {
   background: #e2136e;
   color: #ffffff;
