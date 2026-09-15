@@ -1094,29 +1094,26 @@ if (downloadCertBtn) {
     if (certDate) certDate.textContent = new Date().toLocaleDateString("bn-BD");
 
     if (certTemplate && window.html2pdf) {
-      // টেমপ্লেট দৃশ্যমান করা এবং পজিশনিং ঠিক করা যাতে রেন্ডার হতে পারে
-      certTemplate.style.display = "block";
+      // স্ক্রিনের বাইরে নরমাল পজিশনে এনে রেন্ডার করার সুযোগ দেওয়া
+      certTemplate.style.left = "0px";
       certTemplate.style.position = "absolute";
-      certTemplate.style.left = "0";
-      certTemplate.style.top = "0";
       certTemplate.style.zIndex = "99999";
-      certTemplate.style.opacity = "1";
 
-      // ব্রাউজারকে রেন্ডার করার জন্য সামান্য ১০০ মিলিছেকন্ড সময় দেওয়া
       setTimeout(() => {
         const opt = {
           margin:       0,
           filename:     `${studentName}_Certificate.pdf`,
           image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true },
+          html2canvas:  { scale: 2, useCORS: true, logging: true },
           jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
         };
 
         html2pdf().from(certTemplate).set(opt).save().then(() => {
-          // ডাউনলোড শেষ হলে আবার আগের মতো হাইড করে দেওয়া
-          certTemplate.style.display = "none";
+          // কাজ শেষ হলে আবার স্ক্রিনের বাইরে পাঠিয়ে দেওয়া যাতে সামনে ভেসে না ওঠে
+          certTemplate.style.left = "-9999px";
+          certTemplate.style.position = "fixed";
         });
-      }, 150);
+      }, 200);
 
     } else {
       alert("সার্টিফিকেট জেনারেটর সম্পূর্ণ লোড হয়নি। পেজ রিফ্রেশ করুন।");
