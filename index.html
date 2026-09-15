@@ -321,34 +321,50 @@
   @keyframes certSpin { to { transform: rotate(360deg); } }
 </style>
 
-<!-- সম্পূর্ণ সার্টিফিকেট টেমপ্লেটটি এভাবে রাখুন -->
-<div id="certificateTemplate" style="display: none; width: 1122px; height: 794px; background: #ffffff; color: #000000; padding: 50px; box-sizing: border-box; font-family: 'SolaimanLipi', sans-serif; position: relative; text-align: center;">
-    
-    <!-- Top Header -->
-    <div style="margin-bottom: 40px;">
-      <h1 style="color: #059669; font-size: 48px; margin: 0 0 5px 0; font-weight: bold; line-height: 1.2;">DevLearn Hub</h1>
-      <p style="letter-spacing: 4px; color: #64748b; text-transform: uppercase; font-size: 14px; margin: 0; font-weight: 600;">Certificate of Completion</p>
+<!-- Professional Certificate Template -->
+<div id="certificateTemplate" style="display: none; width: 1122px; height: 794px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); color: #1e293b; padding: 60px; box-sizing: border-box; font-family: 'SolaimanLipi', sans-serif; position: relative; text-align: center; border: 12px solid #0f172a; box-shadow: inset 0 0 40px rgba(0,0,0,0.05);">
+
+    <!-- Inner Decorative Border Line -->
+    <div style="position: absolute; top: 20px; left: 20px; right: 20px; bottom: 20px; border: 2px solid #cbd5e1; pointer-events: none;"></div>
+
+    <!-- Top Header / Logo Area -->
+    <div style="margin-top: 15px; margin-bottom: 30px;">
+      <h1 style="color: #047857; font-size: 52px; margin: 0 0 5px 0; font-weight: 800; letter-spacing: 1px; text-shadow: 1px 1px 2px rgba(0,0,0,0.05);">DevLearn Hub</h1>
+      <p style="letter-spacing: 6px; color: #475569; text-transform: uppercase; font-size: 15px; margin: 0; font-weight: 700;">Certificate of Completion</p>
     </div>
 
     <!-- Middle Body Content -->
-    <div style="margin: 0 auto; width: 100%; margin-bottom: 60px;">
-      <p style="margin: 0 0 10px 0; font-size: 20px; color: #334155;">এই মর্মে সত্যায়িত করা যাচ্ছে যে,</p>
-      <h2 id="certStudentName" style="font-size: 38px; color: #0284c7; margin: 10px 0 15px 0; border-bottom: 3px solid #0284c7; display: inline-block; padding-bottom: 4px; max-width: 900px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ইউজারের নাম</h2>
-      <p style="font-size: 20px; color: #334155; margin: 10px 0;">সফলতার সাথে এবং ৮০%+ নম্বর পেয়ে</p>
-      <h3 id="certCourseName" style="font-size: 30px; color: #d97706; margin: 10px 0 15px 0;">কোর্সের নাম</h3>
-      <p style="font-size: 16px; color: #64748b; line-height: 1.5; margin: 0; max-width: 900px; margin-left: auto; margin-right: auto;">কোর্সটির সকল লেসন এবং ফাইনাল মূল্যায়নে উত্তীর্ণ হয়ে এই সনদ অর্জন করেছেন।</p>
+    <div style="margin: 0 auto; width: 100%; max-width: 950px;">
+      <p style="margin: 0 0 12px 0; font-size: 22px; color: #475569; font-weight: 500;">এই মর্মে সত্যায়িত করা যাচ্ছে যে,</p>
+      
+      <!-- Student Name -->
+      <h2 id="certStudentName" style="font-size: 42px; color: #0284c7; margin: 10px 0 20px 0; border-bottom: 3px solid #0284c7; display: inline-block; padding-bottom: 6px; max-width: 900px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700;">ইউজারের নাম</h2>
+      
+      <p style="font-size: 22px; color: #475569; margin: 10px 0; font-weight: 500;">সফলতার সাথে এবং ৮০%+ নম্বর পেয়ে</p>
+      
+      <!-- Course Title -->
+      <h3 id="certCourseName" style="font-size: 34px; color: #d97706; margin: 10px 0 20px 0; font-weight: 700;">কোর্সের নাম</h3>
+      
+      <p style="font-size: 18px; color: #475569; line-height: 1.6; margin: 0 auto; max-width: 850px; font-weight: 400;">
+        কোর্সটির নির্ধারিত সকল লেসন এবং ফাইনাল মূল্যায়নে সফলভাবে উত্তীর্ণ হয়ে এই সনদ অর্জনের যোগ্যতা অর্জন করেছেন।
+      </p>
     </div>
 
-    <!-- Bottom Footer (Signatures / Dates) -->
-    <div style="display: flex; justify-content: space-between; width: 950px; margin: 0 auto; text-align: center; font-size: 15px; color: #64748b; position: absolute; bottom: 50px; left: 50px; right: 50px;">
-      <div style="text-align: left;">
-        <p style="color:#0f172a; font-weight:bold; margin-bottom: 3px; font-size: 16px;">DevLearn Hub Authority</p>
-        <p style="margin-top:0; border-top: 1px solid #cbd5e1; padding-top: 4px; width: 200px;">অনুমোদিত স্বাক্ষর</p>
+    <!-- Bottom Footer (Signatures & Dates) -->
+    <div style="display: flex; justify-content: space-between; width: 920px; margin: 0 auto; text-align: center; font-size: 16px; color: #475569; position: absolute; bottom: 65px; left: 100px; right: 100px;">
+      
+      <!-- Authority Signature -->
+      <div style="text-align: left; width: 250px;">
+        <p style="color:#0f172a; font-weight:bold; margin-bottom: 4px; font-size: 17px;">DevLearn Hub Authority</p>
+        <p style="margin-top:0; border-top: 2px solid #94a3b8; padding-top: 6px; font-size: 15px; color: #64748b;">অনুমোদিত স্বাক্ষর</p>
       </div>
-      <div style="text-align: right;">
-        <p id="certDate" style="color:#0f172a; font-weight:bold; margin-bottom: 3px; font-size: 16px;"></p>
-        <p style="margin-top:0; border-top: 1px solid #cbd5e1; padding-top: 4px; width: 200px;">ইস্যুর তারিখ</p>
+
+      <!-- Issue Date -->
+      <div style="text-align: right; width: 250px;">
+        <p id="certDate" style="color:#0f172a; font-weight:bold; margin-bottom: 4px; font-size: 17px;"></p>
+        <p style="margin-top:0; border-top: 2px solid #94a3b8; padding-top: 6px; font-size: 15px; color: #64748b;">ইস্যুর তারিখ</p>
       </div>
+
     </div>
 
 </div>
