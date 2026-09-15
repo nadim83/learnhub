@@ -1122,9 +1122,9 @@ if (downloadCertBtn) {
         const opt = {
           margin: 0,
           filename: `${studentName}_Certificate.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
+          image: { type: 'jpeg', quality: 1.0 },
           html2canvas: {
-            scale: 2,
+            scale: 3, // কোয়ালিটি ও সাইজ নিখুঁত রাখার জন্য স্কেল বাড়ানো হলো
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
