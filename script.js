@@ -1113,21 +1113,17 @@ if (downloadCertBtn) {
       const safetyTimer = setTimeout(restoreTemplate, 15000);
 
       setTimeout(() => {
-        const certInner = document.getElementById("certInner") || certTemplate.firstElementChild;
-        const rect = certInner.getBoundingClientRect();
-        const pxToIn = 96;
-        const pdfWidthIn = rect.width / pxToIn;
-        const pdfHeightIn = rect.height / pxToIn;
-
         const opt = {
           margin: 0,
           filename: `${studentName}_Certificate.pdf`,
           image: { type: 'jpeg', quality: 1.0 },
           html2canvas: {
-            scale: 3, // কোয়ালিটি ও সাইজ নিখুঁত রাখার জন্য স্কেল বাড়ানো হলো
+            scale: 2,
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
+            windowWidth: 1122,
+            windowHeight: 794,
             onclone: (clonedDoc) => {
               const clonedOverlay = clonedDoc.getElementById('certLoadingOverlay');
               if (clonedOverlay) clonedOverlay.style.display = 'none';
@@ -1135,18 +1131,19 @@ if (downloadCertBtn) {
               if (clonedTemplate) {
                 clonedTemplate.style.display = 'block';
                 clonedTemplate.style.position = 'static';
-                clonedTemplate.style.zIndex = 'auto';
               }
             }
           },
           jsPDF: {
-            unit: 'in',
-            format: [pdfWidthIn, pdfHeightIn],
-            orientation: pdfWidthIn >= pdfHeightIn ? 'landscape' : 'portrait'
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'landscape',
+            compress: true
           }
         };
 
-        html2pdf().from(certInner).set(opt).outputPdf('blob')
+        // certTemplate সরাসরি পাস করা হলো যাতে পুরো বর্ডারসহ ফুল পেজ আসে
+        html2pdf().from(certTemplate).set(opt).outputPdf('blob')
           .then((pdfBlob) => {
             if (!pdfBlob || pdfBlob.size < 1000) {
               throw new Error("Generated PDF is empty/too small");
@@ -1174,7 +1171,6 @@ if (downloadCertBtn) {
     }
   });
 }
-
 // Step 2: Admin Lesson Management
 if (addCourseForm) {
   addCourseForm.addEventListener("submit", async (e) => {
