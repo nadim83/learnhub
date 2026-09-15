@@ -1113,7 +1113,7 @@ if (downloadCertBtn) {
       const safetyTimer = setTimeout(restoreTemplate, 15000);
 
       setTimeout(() => {
-        const opt = {
+       const opt = {
           margin: 0,
           filename: `${studentName}_Certificate.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
@@ -1122,6 +1122,8 @@ if (downloadCertBtn) {
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
+            scrollX: 0,
+            scrollY: 0,
             windowWidth: 1122,
             windowHeight: 794,
             onclone: (clonedDoc) => {
@@ -1129,10 +1131,9 @@ if (downloadCertBtn) {
               if (clonedOverlay) clonedOverlay.style.display = 'none';
               const clonedTemplate = clonedDoc.getElementById('certificateTemplate');
               if (clonedTemplate) {
-                clonedTemplate.style.display = 'flex';
-                clonedTemplate.style.flexDirection = 'column';
-                clonedTemplate.style.justifyContent = 'space-between';
-                clonedTemplate.style.position = 'static';
+                clonedTemplate.style.display = 'block';
+                clonedTemplate.style.position = 'relative';
+                clonedTemplate.style.margin = '0';
               }
             }
           },
