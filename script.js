@@ -1129,7 +1129,9 @@ if (downloadCertBtn) {
               if (clonedOverlay) clonedOverlay.style.display = 'none';
               const clonedTemplate = clonedDoc.getElementById('certificateTemplate');
               if (clonedTemplate) {
-                clonedTemplate.style.display = 'block';
+                clonedTemplate.style.display = 'flex';
+                clonedTemplate.style.flexDirection = 'column';
+                clonedTemplate.style.justifyContent = 'space-between';
                 clonedTemplate.style.position = 'static';
               }
             }
@@ -1163,7 +1165,7 @@ if (downloadCertBtn) {
             alert("সার্টিফিকেট ডাউনলোড করতে সমস্যা হয়েছে।");
             restoreTemplate();
           });
-      }, 400);
+      }, 800); // রেন্ডারিংয়ের জন্য সময় একটু বাড়িয়ে ৮০০ মি.সে. রাখা হলো
 
     } else {
       alert("সার্টিফিকেট জেনারেটর সম্পূর্ণ লোড হয়নি। পেজ রিফ্রেশ করুন।");
