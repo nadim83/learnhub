@@ -1094,26 +1094,20 @@ if (downloadCertBtn) {
     if (certDate) certDate.textContent = new Date().toLocaleDateString("bn-BD");
 
     if (certTemplate && window.html2pdf) {
-      // স্ক্রিনের বাইরে নরমাল পজিশনে এনে রেন্ডার করার সুযোগ দেওয়া
-      certTemplate.style.left = "0px";
-      certTemplate.style.position = "absolute";
-      certTemplate.style.zIndex = "99999";
+      // যেহেতু অপাসিটি ০ এবং পয়েন্টার ইভেন্টস বন্ধ, এটি ইউজারের চোখের সামনে আসবে না বা সামনে ভেসে উঠবে না
+      const opt = {
+        margin:       0,
+        filename:     `${studentName}_Certificate.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+      };
 
-      setTimeout(() => {
-        const opt = {
-          margin:       0,
-          filename:     `${studentName}_Certificate.pdf`,
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true, logging: true },
-          jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
-        };
-
-        html2pdf().from(certTemplate).set(opt).save().then(() => {
-          // কাজ শেষ হলে আবার স্ক্রিনের বাইরে পাঠিয়ে দেওয়া যাতে সামনে ভেসে না ওঠে
-          certTemplate.style.left = "-9999px";
-          certTemplate.style.position = "fixed";
-        });
-      }, 200);
+      // সরাসরি টেমপ্লেট থেকে পিডিএফ জেনারেট করা
+      html2pdf().from(certTemplate).set(opt).save().catch(err => {
+        console.error("PDF Generation Error:", err);
+        alert("সার্টিফিকেট ডাউনলোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+      });
 
     } else {
       alert("সার্টিফিকেট জেনারেটর সম্পূর্ণ লোড হয়নি। পেজ রিফ্রেশ করুন।");
