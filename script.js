@@ -1096,15 +1096,8 @@ if (downloadCertBtn) {
     const overlay = document.getElementById("certLoadingOverlay");
 
     if (certTemplate && window.html2pdf) {
-
-      // মোবাইলে horizontal scroll আটকানোর জন্য
       document.body.style.overflow = "hidden";
-
-      // Template স্বাভাবিক জায়গায় (top:0, left:0) দেখানো হচ্ছে যাতে html2canvas
-      // ঠিকমতো render করতে পারে (negative left/position ব্যবহার করলে blank/empty PDF হয়)
       certTemplate.style.display = "block";
-
-      // Overlay দেখানো হচ্ছে — এটাই ইউজার দেখবে, certTemplate নয় (z-index দিয়ে ঢাকা)
       if (overlay) overlay.style.display = "flex";
 
       let restored = false;
@@ -1117,31 +1110,24 @@ if (downloadCertBtn) {
         clearTimeout(safetyTimer);
       };
 
-      // Safety net: html2pdf এর promise কখনো resolve/reject না করলেও ১৫ সেকেন্ড পর জোর করে হাইড
       const safetyTimer = setTimeout(restoreTemplate, 15000);
 
       setTimeout(() => {
-        // certificate-টার আসল pixel সাইজ মেপে সেই অনুযায়ী PDF page-এর সাইজ ঠিক করা হচ্ছে,
-        // যাতে page আর content-এর সাইজ একদম মিলে যায় এবং কোনো ফাঁকা জায়গা না থাকে
         const certInner = document.getElementById("certInner") || certTemplate.firstElementChild;
         const rect = certInner.getBoundingClientRect();
-        const pxToIn = 96; // স্ট্যান্ডার্ড CSS px-to-inch conversion
+        const pxToIn = 96;
         const pdfWidthIn = rect.width / pxToIn;
         const pdfHeightIn = rect.height / pxToIn;
 
         const opt = {
-          margin:       0,
-          filename:     `${studentName}_Certificate.pdf`,
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  {
+          margin: 0,
+          filename: `${studentName}_Certificate.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
             scale: 2,
             useCORS: true,
             logging: false,
             backgroundColor: '#ffffff',
-            // capture-এর সময় শুধু cloned document-এ overlay লুকিয়ে template-কে
-            // normal position-এ নিয়ে আসা হচ্ছে, লাইভ পেজের ভিজ্যুয়াল অবস্থা না বদলিয়ে।
-            // এতেই blank/সাদা PDF সমস্যাটা সমাধান হয়, কারণ overlay আর z-index/fixed
-            // positioning html2canvas এর ক্যাপচারে হস্তক্ষেপ করে না।
             onclone: (clonedDoc) => {
               const clonedOverlay = clonedDoc.getElementById('certLoadingOverlay');
               if (clonedOverlay) clonedOverlay.style.display = 'none';
@@ -1153,18 +1139,13 @@ if (downloadCertBtn) {
               }
             }
           },
-          // fixed 'a4'/'letter' এর বদলে certificate-এর আসল সাইজ অনুযায়ী custom page format —
-          // এতে page আর content একই সাইজ হয়, কোনো blank margin থাকে না
-          jsPDF:        {
+          jsPDF: {
             unit: 'in',
             format: [pdfWidthIn, pdfHeightIn],
             orientation: pdfWidthIn >= pdfHeightIn ? 'landscape' : 'portrait'
           }
         };
 
-        // .save() এর বদলে blob আকারে জেনারেট করে নিজে ম্যানুয়ালি ডাউনলোড করানো হচ্ছে
-        // এতে html2pdf/jsPDF এর internal navigation এড়ানো যায়, যেটা মোবাইলে
-        // ডাউনলোডের পর পেজ সাদা হয়ে যাওয়ার মূল কারণ ছিল
         html2pdf().from(certInner).set(opt).outputPdf('blob')
           .then((pdfBlob) => {
             if (!pdfBlob || pdfBlob.size < 1000) {
