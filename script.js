@@ -1142,7 +1142,7 @@ if (downloadCertBtn) {
           }
         };
 
-        // certTemplate সরাসরি পাস করা হলো যাতে পুরো বর্ডারসহ ফুল পেজ আসে
+        // সরাসরি পুরো টেমপ্লেট ক্যানভাসে ধরা হচ্ছে
         html2pdf().from(certTemplate).set(opt).outputPdf('blob')
           .then((pdfBlob) => {
             if (!pdfBlob || pdfBlob.size < 1000) {
@@ -1164,7 +1164,7 @@ if (downloadCertBtn) {
             alert("সার্টিফিকেট ডাউনলোড করতে সমস্যা হয়েছে।");
             restoreTemplate();
           });
-      }, 300);
+      }, 400);
 
     } else {
       alert("সার্টিফিকেট জেনারেটর সম্পূর্ণ লোড হয়নি। পেজ রিফ্রেশ করুন।");
