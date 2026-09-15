@@ -1094,20 +1094,32 @@ if (downloadCertBtn) {
     if (certDate) certDate.textContent = new Date().toLocaleDateString("bn-BD");
 
     if (certTemplate && window.html2pdf) {
-      // যেহেতু অপাসিটি ০ এবং পয়েন্টার ইভেন্টস বন্ধ, এটি ইউজারের চোখের সামনে আসবে না বা সামনে ভেসে উঠবে না
-      const opt = {
-        margin:       0,
-        filename:     `${studentName}_Certificate.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
-      };
+      // টেমপ্লেটটি ডিসপ্লে ব্লক করে রেন্ডার করার জন্য দৃশ্যমান করা
+      certTemplate.style.display = "block";
+      certTemplate.style.position = "fixed";
+      certTemplate.style.top = "0";
+      certTemplate.style.left = "0";
+      certTemplate.style.zIndex = "-9999"; // ইউজারের চোখের আড়ালে রাখার জন্য
 
-      // সরাসরি টেমপ্লেট থেকে পিডিএফ জেনারেট করা
-      html2pdf().from(certTemplate).set(opt).save().catch(err => {
-        console.error("PDF Generation Error:", err);
-        alert("সার্টিফিকেট ডাউনলোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-      });
+      // ব্রাউজারকে এলিমেন্টটি পুরোপুরি রিড ও রেন্ডার করার জন্য ৩০০ মিলিভিসেকেন্ড সময় দেওয়া
+      setTimeout(() => {
+        const opt = {
+          margin:       0,
+          filename:     `${studentName}_Certificate.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true, logging: false },
+          jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+        };
+
+        html2pdf().from(certTemplate).set(opt).save().then(() => {
+          // ডাউনলোড শেষ হলে টেমপ্লেটটি আবার হাইড করে দেওয়া
+          certTemplate.style.display = "none";
+        }).catch(err => {
+          console.error("PDF Error:", err);
+          certTemplate.style.display = "none";
+          alert("সার্টিফিকেট ডাউনলোড করতে সমস্যা হয়েছে।");
+        });
+      }, 300);
 
     } else {
       alert("সার্টিফিকেট জেনারেটর সম্পূর্ণ লোড হয়নি। পেজ রিফ্রেশ করুন।");
